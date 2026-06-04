@@ -1,0 +1,44 @@
+0x00000000 - 0080006F - jal zero, start
+0x00000004 - 0600006F - jal zero, isr
+0x00000008 - 00010537 - lui a0, %hi(prompt)
+0x0000000C - 00050513 - addi a0, a0, %lo(prompt)
+0x00000010 - 038000EF - jal ra, print_str
+0x00000014 - 00100073 - ei
+0x00000018 - 000102B7 - lui t0, %hi(flag)
+0x0000001C - 05428293 - addi t0, t0, %lo(flag)
+0x00000020 - 0002A303 - lw t1, 0(t0)
+0x00000024 - FE030AE3 - beq t1, zero, wait_loop
+0x00000028 - 00200073 - di
+0x0000002C - 00010537 - lui a0, %hi(greet)
+0x00000030 - 01C50513 - addi a0, a0, %lo(greet)
+0x00000034 - 014000EF - jal ra, print_str
+0x00000038 - 00010537 - lui a0, %hi(buffer)
+0x0000003C - 03050513 - addi a0, a0, %lo(buffer)
+0x00000040 - 008000EF - jal ra, print_str
+0x00000044 - 00000073 - halt
+0x00000048 - 00050293 - addi t0, a0, 0
+0x0000004C - 0002A303 - lw t1, 0(t0)
+0x00000050 - 00030863 - beq t1, zero, .print_end
+0x00000054 - 00603073 - out t1, 0
+0x00000058 - 00428293 - addi t0, t0, 4
+0x0000005C - FF1FF06F - jal zero, .print_loop
+0x00000060 - 00008067 - jalr zero, 0(ra)
+0x00000064 - 001023F3 - in t2, 1
+0x00000068 - 00A00F13 - addi t5, zero, 10
+0x0000006C - 03E38063 - beq t2, t5, .input_done
+0x00000070 - 00010E37 - lui t3, %hi(ptr)
+0x00000074 - 050E0E13 - addi t3, t3, %lo(ptr)
+0x00000078 - 000E2E83 - lw t4, 0(t3)
+0x0000007C - 007EA023 - sw t2, 0(t4)
+0x00000080 - 004E8E93 - addi t4, t4, 4
+0x00000084 - 01DE2023 - sw t4, 0(t3)
+0x00000088 - 30200073 - iret
+0x0000008C - 00010E37 - lui t3, %hi(ptr)
+0x00000090 - 050E0E13 - addi t3, t3, %lo(ptr)
+0x00000094 - 000E2E83 - lw t4, 0(t3)
+0x00000098 - 000EA023 - sw zero, 0(t4)
+0x0000009C - 00010E37 - lui t3, %hi(flag)
+0x000000A0 - 054E0E13 - addi t3, t3, %lo(flag)
+0x000000A4 - 00100E93 - addi t4, zero, 1
+0x000000A8 - 01DE2023 - sw t4, 0(t3)
+0x000000AC - 30200073 - iret

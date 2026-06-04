@@ -1,0 +1,44 @@
+0x00000000 - 00000413 - addi s0, zero, 0
+0x00000004 - 3E700493 - addi s1, zero, 999
+0x00000008 - 06400993 - addi s3, zero, 100
+0x0000000C - 0534CA63 - blt s1, s3, end_loops
+0x00000010 - 3E700913 - addi s2, zero, 999
+0x00000014 - 05394263 - blt s2, s3, next_i
+0x00000018 - 032482B3 - mul t0, s1, s2
+0x0000001C - 0282CE63 - blt t0, s0, next_i
+0x00000020 - 02828C63 - beq t0, s0, next_i
+0x00000024 - 00028313 - addi t1, t0, 0
+0x00000028 - 00000393 - addi t2, zero, 0
+0x0000002C - 00A00E93 - addi t4, zero, 10
+0x00000030 - 00030C63 - beq t1, zero, pal_done
+0x00000034 - 03D36E33 - rem t3, t1, t4
+0x00000038 - 03D34333 - div t1, t1, t4
+0x0000003C - 03D383B3 - mul t2, t2, t4
+0x00000040 - 01C383B3 - add t2, t2, t3
+0x00000044 - FEDFF06F - jal zero, pal_loop
+0x00000048 - 00729463 - bne t0, t2, not_pal
+0x0000004C - 00028413 - addi s0, t0, 0
+0x00000050 - FFF90913 - addi s2, s2, -1
+0x00000054 - FC1FF06F - jal zero, loop_j
+0x00000058 - FFF48493 - addi s1, s1, -1
+0x0000005C - FB1FF06F - jal zero, loop_i
+0x00000060 - 00040513 - addi a0, s0, 0
+0x00000064 - 008000EF - jal ra, print_int
+0x00000068 - 00000073 - halt
+0x0000006C - 00050293 - addi t0, a0, 0
+0x00000070 - 00A00313 - addi t1, zero, 10
+0x00000074 - 000103B7 - lui t2, %hi(stack)
+0x00000078 - 00438393 - addi t2, t2, %lo(stack)
+0x0000007C - 0262EE33 - rem t3, t0, t1
+0x00000080 - 0262C2B3 - div t0, t0, t1
+0x00000084 - 030E0E13 - addi t3, t3, 48
+0x00000088 - 01C3A023 - sw t3, 0(t2)
+0x0000008C - 00438393 - addi t2, t2, 4
+0x00000090 - FE0296E3 - bne t0, zero, .split_loop
+0x00000094 - FFC38393 - addi t2, t2, -4
+0x00000098 - 0003AE03 - lw t3, 0(t2)
+0x0000009C - 01C03073 - out t3, 0
+0x000000A0 - 00010EB7 - lui t4, %hi(stack)
+0x000000A4 - 004E8E93 - addi t4, t4, %lo(stack)
+0x000000A8 - FFD396E3 - bne t2, t4, .print_loop
+0x000000AC - 00008067 - jal zero, 0(ra)
