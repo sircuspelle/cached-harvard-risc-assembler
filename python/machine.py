@@ -3,6 +3,7 @@ import argparse
 import sys
 from typing import List, Dict, Tuple, Optional
 
+
 class CacheL1:
     def __init__(self, data_memory: bytearray):
         self.data_memory = data_memory
@@ -32,7 +33,7 @@ class CacheL1:
             self.misses += 1
             if address + 4 > len(self.data_memory):
                 raise IndexError(f"data memory access out of bounds: {address}")
-            val = struct.unpack("<i", self.data_memory[address:address+4])[0]
+            val = struct.unpack("<i", self.data_memory[address : address + 4])[0]
             self.cache_lines[index] = {"valid": True, "tag": tag, "data": val}
             return val, self.miss_cycles
 
@@ -57,7 +58,7 @@ class IOController:
     def tick_check(self, current_tick: int):
         if not self.input_schedule:
             return
-        
+
         next_event_tick, ascii_code = self.input_schedule[0]
         if current_tick >= next_event_tick:
             self.port_in_data = ascii_code
@@ -76,14 +77,15 @@ class IOController:
             self.output_buffer.append(char)
             print(char, end="", flush=True)
 
+
 class ControlUnit:
     @staticmethod
     def decode(instruction: int) -> dict:
         opcode = instruction & 0x7F
-        rd     = (instruction >> 7) & 0x1F
+        rd = (instruction >> 7) & 0x1F
         funct3 = (instruction >> 12) & 0x7
-        rs1    = (instruction >> 15) & 0x1F
-        rs2    = (instruction >> 20) & 0x1F
+        rs1 = (instruction >> 15) & 0x1F
+        rs2 = (instruction >> 20) & 0x1F
         funct7 = (instruction >> 25) & 0x7F
 
         # TODO: PortRd, PortWr согласовать со схемой
@@ -93,26 +95,46 @@ class ControlUnit:
         # TODO: IRET может и не нужен, надо согласовать со схемой
         # TODO: Imm пока костыль
         signals = {
-            "RegWr": False, "MemRd": False, "MemWr": False,
-            "PortRd": False, "PortWr": False, "ALUSrc": "REG", 
-            "Branch": False, "Jump": False, "Halt": False,
-            "IRET": False, "EI": False, "DI": False,
-            "ALUOp": "ADD", "Imm": 0, "rs1": rs1, "rs2": rs2, "rd": rd
+            "RegWr": False,
+            "MemRd": False,
+            "MemWr": False,
+            "PortRd": False,
+            "PortWr": False,
+            "ALUSrc": "REG",
+            "Branch": False,
+            "Jump": False,
+            "Halt": False,
+            "IRET": False,
+            "EI": False,
+            "DI": False,
+            "ALUOp": "ADD",
+            "Imm": 0,
+            "rs1": rs1,
+            "rs2": rs2,
+            "rd": rd,
         }
 
         # R-type (add, sub, and, ...)
         if opcode == 0x33:
             signals["RegWr"] = True
-            if funct3 == 0x0 and funct7 == 0x00: signals["ALUOp"] = "ADD"
-            elif funct3 == 0x0 and funct7 == 0x20: signals["ALUOp"] = "SUB"
-            elif funct3 == 0x7 and funct7 == 0x00: signals["ALUOp"] = "AND"
-            elif funct3 == 0x6 and funct7== 0x00: signals["ALUOp"] = "OR"
-            elif funct3 == 0x4 and funct7 == 0x00: signals["ALUOp"] = "XOR"
+            if funct3 == 0x0 and funct7 == 0x00:
+                signals["ALUOp"] = "ADD"
+            elif funct3 == 0x0 and funct7 == 0x20:
+                signals["ALUOp"] = "SUB"
+            elif funct3 == 0x7 and funct7 == 0x00:
+                signals["ALUOp"] = "AND"
+            elif funct3 == 0x6 and funct7 == 0x00:
+                signals["ALUOp"] = "OR"
+            elif funct3 == 0x4 and funct7 == 0x00:
+                signals["ALUOp"] = "XOR"
 
-            elif funct3 == 0x0 and funct7 == 0x01: signals["ALUOp"] = "MUL"
-            elif funct3 == 0x4 and funct7 == 0x01: signals["ALUOp"] = "DIV"
-            elif funct3 == 0x6 and funct7 == 0x01: signals["ALUOp"] = "REM"
-            
+            elif funct3 == 0x0 and funct7 == 0x01:
+                signals["ALUOp"] = "MUL"
+            elif funct3 == 0x4 and funct7 == 0x01:
+                signals["ALUOp"] = "DIV"
+            elif funct3 == 0x6 and funct7 == 0x01:
+                signals["ALUOp"] = "REM"
+
         # TODO: пока скорее задумка чем что-то готовое
         # I-type (addi, andi)
         elif opcode == 0x13:
@@ -120,16 +142,20 @@ class ControlUnit:
             signals["ALUSrc"] = "IMM"
             imm = (instruction >> 20) & 0xFFF
             signals["Imm"] = imm if (imm & 0x800) == 0 else imm - 0x1000
-            
-            if funct3 == 0x0: signals["ALUOp"] = "ADD"
-            elif funct3 == 0x7: signals["ALUOp"] = "AND"
+
+            if funct3 == 0x0:
+                signals["ALUOp"] = "ADD"
+            elif funct3 == 0x7:
+                signals["ALUOp"] = "AND"
             # TODO: докинуты прямые команды ORI и XORI потому что могу но надо думать ещё
-            elif funct3 == 0x6: signals["ALUOp"] = "OR"
-            elif funct3 == 0x4: signals["ALUOp"] = "XOR"
+            elif funct3 == 0x6:
+                signals["ALUOp"] = "OR"
+            elif funct3 == 0x4:
+                signals["ALUOp"] = "XOR"
 
         # TODO: учесть word/byte
         # Load
-        elif opcode == 0x03: # Load
+        elif opcode == 0x03:  # Load
             signals["RegWr"] = True
             signals["MemRd"] = True
             signals["ALUSrc"] = "IMM"
@@ -180,7 +206,7 @@ class ControlUnit:
             if imm & 0x100000:
                 imm = imm - 0x200000
             signals["Imm"] = imm
-            
+
         # JALR
         elif opcode == 0x67:
             signals["RegWr"] = True
@@ -200,7 +226,7 @@ class ControlUnit:
             if funct3 == 0x2:
                 signals["RegWr"] = True
                 signals["PortRd"] = True
-                signals["Imm"] = imm # номер порта
+                signals["Imm"] = imm  # номер порта
 
             # OUT (S-type)
             elif funct3 == 0x3:
@@ -214,13 +240,17 @@ class ControlUnit:
 
             # EI, DI, IRET, Halt
             elif funct3 == 0x0:
-                if imm == 0x000: signals["Halt"] = True
-                elif imm == 0x302: signals["IRET"] = True
-                elif imm == 0x001: signals["EI"] = True
-                elif imm == 0x002: signals["DI"] = True
+                if imm == 0x000:
+                    signals["Halt"] = True
+                elif imm == 0x302:
+                    signals["IRET"] = True
+                elif imm == 0x001:
+                    signals["EI"] = True
+                elif imm == 0x002:
+                    signals["DI"] = True
 
         return signals
-    
+
 
 class Processor:
     def __init__(self, text_mem: List[int], data_mem: bytearray, io_ctrl: IOController):
@@ -228,24 +258,24 @@ class Processor:
         self.cache = CacheL1(data_mem)
         self.io = io_ctrl
         self.cu = ControlUnit()
-        
+
         self.registers = [0] * 32
         self.pc = 0
         self.epc = 0
         self.interrupts_enabled = False
-        
+
         self.ticks = 0
         self.stall_cycles = 0
         self.halted = False
-        
-        self.journal =[]
+
+        self.journal = []
 
     def tick(self):
         # защёлкнули PC
         self.ticks += 1
-        
+
         self.io.tick_check(self.ticks)
-        
+
         if self.stall_cycles > 0:
             self.stall_cycles -= 1
             self.log_state("STALL")
@@ -255,12 +285,12 @@ class Processor:
         if self.pc // 4 >= len(self.instruction_memory):
             self.halted = True
             return
-            
+
         instruction = self.instruction_memory[self.pc // 4]
-        
+
         # Decode
         sig = self.cu.decode(instruction)
-        
+
         if sig["Halt"]:
             self.halted = True
             self.log_state("HALT")
@@ -271,50 +301,62 @@ class Processor:
         valB = sig["Imm"] if sig["ALUSrc"] == "IMM" else self.registers[sig["rs2"]]
         alu_result = 0
 
-        if sig["ALUOp"] == "ADD": alu_result = valA + valB
-        elif sig["ALUOp"] == "ADD_REG_IMM": alu_result = valA + valB
-        elif sig["ALUOp"] == "SUB": alu_result = valA - valB
-        elif sig["ALUOp"] == "AND": alu_result = valA & valB
-        elif sig["ALUOp"] == "OR":  alu_result = valA | valB
-        elif sig["ALUOp"] == "XOR": alu_result = valA ^ valB
-        elif sig["ALUOp"] == "COPY_B": alu_result = valB
-        elif sig["ALUOp"] == "MUL": alu_result = (valA * valB) & 0xFFFFFFFF
-        elif sig["ALUOp"] == "DIV": alu_result = (valA // valB) if valB != 0 else 0
-        elif sig["ALUOp"] == "REM": alu_result = (valA % valB) if valB != 0 else valA
+        if sig["ALUOp"] == "ADD":
+            alu_result = valA + valB
+        elif sig["ALUOp"] == "ADD_REG_IMM":
+            alu_result = valA + valB
+        elif sig["ALUOp"] == "SUB":
+            alu_result = valA - valB
+        elif sig["ALUOp"] == "AND":
+            alu_result = valA & valB
+        elif sig["ALUOp"] == "OR":
+            alu_result = valA | valB
+        elif sig["ALUOp"] == "XOR":
+            alu_result = valA ^ valB
+        elif sig["ALUOp"] == "COPY_B":
+            alu_result = valB
+        elif sig["ALUOp"] == "MUL":
+            alu_result = (valA * valB) & 0xFFFFFFFF
+        elif sig["ALUOp"] == "DIV":
+            alu_result = (valA // valB) if valB != 0 else 0
+        elif sig["ALUOp"] == "REM":
+            alu_result = (valA % valB) if valB != 0 else valA
         next_pc = self.pc + 4
         write_back_val = alu_result
 
         if sig["MemRd"]:
             write_back_val, stalls = self.cache.read(alu_result)
             self.stall_cycles += stalls
-            
+
         elif sig["MemWr"]:
             val_to_store = self.registers[sig["rs2"]]
             stalls = self.cache.write(alu_result, val_to_store)
             self.stall_cycles += stalls
-            
+
         elif sig["PortRd"]:
             write_back_val = self.io.read_port(sig["Imm"])
-            
+
         elif sig["PortWr"]:
             self.io.write_port(sig["Imm"], self.registers[sig["rs2"]])
 
         # control flow: conditional
         if sig["Branch"]:
-            def to_signed(x): return x if x < 0x80000000 else x - 0x100000000
+
+            def to_signed(x):
+                return x if x < 0x80000000 else x - 0x100000000
 
             valA_s = to_signed(valA)
             valB_s = to_signed(valB)
 
-            if sig["Funct3"] == 0 and alu_result == 0:          # beq
+            if sig["Funct3"] == 0 and alu_result == 0:  # beq
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 1 and alu_result != 0:        # bne
+            elif sig["Funct3"] == 1 and alu_result != 0:  # bne
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 4 and valA_s < valB_s:        # blt знаковое
+            elif sig["Funct3"] == 4 and valA_s < valB_s:  # blt знаковое
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 5 and valA_s >= valB_s:       # bge знаковое
+            elif sig["Funct3"] == 5 and valA_s >= valB_s:  # bge знаковое
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 6 and valA < valB:            # bltu беззнаковое <
+            elif sig["Funct3"] == 6 and valA < valB:  # bltu беззнаковое <
                 next_pc = self.pc + sig["Imm"]
 
         if sig["Jump"]:
@@ -324,9 +366,11 @@ class Processor:
             else:  # JAL
                 next_pc = self.pc + sig["Imm"]
 
-        if sig["EI"]: self.interrupts_enabled = True
-        elif sig["DI"]: self.interrupts_enabled = False
-        elif sig["IRET"]: 
+        if sig["EI"]:
+            self.interrupts_enabled = True
+        elif sig["DI"]:
+            self.interrupts_enabled = False
+        elif sig["IRET"]:
             next_pc = self.epc
             self.interrupts_enabled = True
 
@@ -335,7 +379,7 @@ class Processor:
 
         # логируем до изменения PC
         self.log_state(f"0x{instruction:08X}")
-        
+
         # trap
         if self.interrupts_enabled and self.io.interrupt_pending:
             self.epc = next_pc
@@ -355,39 +399,41 @@ class Processor:
         self.journal.append(f"Tick: {self.ticks:4} | PC: {self.pc:04X} | Act: {action:10} | {regs}")
 
 
-
 import ast
+
 
 def load_binary(file_path: str) -> Tuple[List[int], bytearray]:
     with open(file_path, "rb") as f:
         header = f.read(12)
         magic, text_size, data_size = struct.unpack("<I I I", header)
-        
+
         if magic != 0xDEADDEAD:
             raise ValueError("invalid binary file, magic number mismatch.")
-            
+
         text_data = f.read(text_size)
         data_data = f.read(data_size)
-        
-        text_mem = [struct.unpack("<I", text_data[i:i+4])[0] for i in range(0, text_size, 4)]
-        
+
+        text_mem = [struct.unpack("<I", text_data[i : i + 4])[0] for i in range(0, text_size, 4)]
+
         data_mem = bytearray(4096)
         data_mem[:data_size] = data_data
-        
+
         return text_mem, data_mem
+
 
 def load_schedule(file_path: str) -> List[Tuple[int, int]]:
     if not file_path:
-        return[]
+        return []
     with open(file_path, "r") as f:
         content = f.read()
         raw_schedule = ast.literal_eval(content)
-        
-        schedule =[]
+
+        schedule = []
         for tick, char in raw_schedule:
             ascii_code = ord(char) if isinstance(char, str) else char
             schedule.append((tick, ascii_code))
         return schedule
+
 
 def main():
     parser = argparse.ArgumentParser(description="RISC-IV Processor Simulator")
@@ -398,11 +444,11 @@ def main():
 
     text_mem, data_mem = load_binary(args.binary)
     schedule = load_schedule(args.input)
-    output_buffer =[]
-    
+    output_buffer = []
+
     io_ctrl = IOController(schedule, output_buffer)
     processor = Processor(text_mem, data_mem, io_ctrl)
-    
+
     max_ticks = 100000000
     try:
         while not processor.halted and processor.ticks < max_ticks:
@@ -414,15 +460,16 @@ def main():
         print(f"\nreached ticks limit ({max_ticks})")
 
     print("\nstop")
-    
+
     print(f"Total ticks: {processor.ticks}")
     print(f"L1 cache hits: {processor.cache.hits}")
     print(f"L1 cache misses: {processor.cache.misses}")
     print(f"output buffer: {''.join(output_buffer)}")
-    
+
     with open(args.log, "w") as f:
         f.write("\n".join(processor.journal))
     print(f"logged in {args.log}")
+
 
 if __name__ == "__main__":
     main()

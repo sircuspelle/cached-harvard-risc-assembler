@@ -11,27 +11,16 @@ def translator():
 
 
 class TestInstructionEncoding:
-
     def test_r_type_encoding(self, translator):
-        machine_code = translator._assemble_instruction(
-            "add t0, t1, t2", address=0
-        )
-        assert (
-            machine_code == 0x007302B3
-        ), f"expected 0x007302B3, got 0x{machine_code:08X}"
+        machine_code = translator._assemble_instruction("add t0, t1, t2", address=0)
+        assert machine_code == 0x007302B3, f"expected 0x007302B3, got 0x{machine_code:08X}"
 
     def test_i_type_encoding(self, translator):
-        machine_code = translator._assemble_instruction(
-            "addi a0, zero, 15", address=0
-        )
-        assert (
-            machine_code == 0x00F00513
-        ), f"expected 0x00F00513, got 0x{machine_code:08X}"
+        machine_code = translator._assemble_instruction("addi a0, zero, 15", address=0)
+        assert machine_code == 0x00F00513, f"expected 0x00F00513, got 0x{machine_code:08X}"
 
     def test_memory_load_encoding(self, translator):
-        machine_code = translator._assemble_instruction(
-            "lw a0, 4(sp)", address=0
-        )
+        machine_code = translator._assemble_instruction("lw a0, 4(sp)", address=0)
         assert machine_code == 0x00412503
 
     def test_port_io_encoding(self, translator):
@@ -39,14 +28,11 @@ class TestInstructionEncoding:
         assert machine_code == 0x001022F3
 
     def test_branch_encoding(self, translator):
-        machine_code = translator._assemble_instruction(
-            "beq t0, t1, my_label", address=0
-        )
+        machine_code = translator._assemble_instruction("beq t0, t1, my_label", address=0)
         assert machine_code == 0x00628663
 
 
 class TestDataSection:
-
     def test_word_directive(self, translator):
         translator._assemble_data(".word 255, -1")
         expected = struct.pack("<i", 255) + struct.pack("<i", -1)
@@ -59,7 +45,6 @@ class TestDataSection:
 
 
 class TestIntegration:
-
     def test_full_translation(self, translator):
         source_code = """
         .data

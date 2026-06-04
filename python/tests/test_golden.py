@@ -17,10 +17,7 @@ MACHINE = "python/machine.py"
     ],
 )
 def test_pipeline(asm_file, input_file, expected_output, tmp_path):
-
-    project_root = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     bin_file = tmp_path / "out.bin"
     log_build = tmp_path / "build.log"
@@ -34,18 +31,14 @@ def test_pipeline(asm_file, input_file, expected_output, tmp_path):
         "--log",
         str(log_build),
     ]
-    comp_res = subprocess.run(
-        compile_cmd, capture_output=True, text=True, cwd=project_root
-    )
+    comp_res = subprocess.run(compile_cmd, capture_output=True, text=True, cwd=project_root)
     assert comp_res.returncode == 0, f"Compilation failed: {comp_res.stderr}"
 
     run_cmd = ["python", MACHINE, str(bin_file), "--log", str(log_exec)]
     if input_file:
         run_cmd.extend(["--input", input_file])
 
-    run_res = subprocess.run(
-        run_cmd, capture_output=True, text=True, cwd=project_root
-    )
+    run_res = subprocess.run(run_cmd, capture_output=True, text=True, cwd=project_root)
     assert run_res.returncode == 0, f"Execution failed: {run_res.stderr}"
 
     assert "[АППАРАТНАЯ ОШИБКА]" not in run_res.stdout
@@ -55,6 +48,4 @@ def test_pipeline(asm_file, input_file, expected_output, tmp_path):
         if line.startswith("Output buffer:"):
             output_line = line.replace("Output buffer: ", "").lstrip()
 
-    assert (
-        output_line == expected_output
-    ), f"Expected '{expected_output}', got '{output_line}'"
+    assert output_line == expected_output, f"Expected '{expected_output}', got '{output_line}'"
