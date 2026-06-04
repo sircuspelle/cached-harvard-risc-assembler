@@ -67,3 +67,6 @@ jobs:
 
       - name: Run Ruff linters
         run: poetry run ruff check .
+
+      - name: Run Mypy
+        run: poetry run mypy .
