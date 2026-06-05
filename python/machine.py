@@ -132,9 +132,7 @@ class ControlUnit:
         # TODO: PortRd, PortWr согласовать со схемой
         # TODO: Branch и Jump согласовать со схемой
         # TODO: Halt сигнал согласовать со схемой и ещё подумать над ним
-        # TODO: EI и DI пока, но мб один оставить
         # TODO: IRET может и не нужен, надо согласовать со схемой
-        # TODO: Imm пока костыль
         signals = {
             "RegWr": False,
             "MemRd": False,
@@ -146,8 +144,8 @@ class ControlUnit:
             "Jump": False,
             "Halt": False,
             "IRET": False,
-            "EI": False,
-            "DI": False,
+            "IntEnWr": False,
+            "IntEnData": False,
             "ALUOp": "ADD",
             "rs1": rs1,
             "rs2": rs2,
@@ -240,17 +238,20 @@ class ControlUnit:
             elif funct3 == 0x3:
                 signals["PortWr"] = True
 
-            # EI, DI, IRET, Halt
             elif funct3 == 0x0:
                 funct12 = (instruction >> 20) & 0xFFF
                 if funct12 == 0x000:
                     signals["Halt"] = True
                 elif funct12 == 0x302:
                     signals["IRET"] = True
+                    signals["IntEnWr"] = True
+                    signals["IntEnData"] = True
                 elif funct12 == 0x001:
-                    signals["EI"] = True
+                    signals["IntEnWr"] = True
+                    signals["IntEnData"] = True
                 elif funct12 == 0x002:
-                    signals["DI"] = True
+                    signals["IntEnWr"] = True
+                    signals["IntEnData"] = False
 
         return signals
 
@@ -370,13 +371,11 @@ class Processor:
             else:  # JAL
                 next_pc = self.pc + imm_val
 
-        if sig["EI"]:
-            self.interrupts_enabled = True
-        elif sig["DI"]:
-            self.interrupts_enabled = False
-        elif sig["IRET"]:
+        if sig["IntEnWr"]:
+            self.interrupts_enabled = sig["IntEnData"]
+
+        if sig["IRET"]:
             next_pc = self.epc
-            self.interrupts_enabled = True
 
         if sig["RegWr"] and sig["rd"] != 0:
             self.registers[sig["rd"]] = write_back_val & 0xFFFFFFFF
@@ -384,7 +383,7 @@ class Processor:
         # логируем до изменения PC
         self.log_state(f"0x{instruction:08X}")
 
-        # trap
+        # trap Controller
         if self.interrupts_enabled and self.io.interrupt_pending:
             self.epc = next_pc
             next_pc = 0x0004
