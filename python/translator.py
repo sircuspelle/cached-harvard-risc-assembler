@@ -529,7 +529,10 @@ class Translator:
                 # can be number
                 else:
                     v = int(val_str, 0)
-                # only positive numbers
+
+                if v < 0:
+                    v = v & 0xFFFFFFFF
+
                 if v < 0 or v > 0xFFFFFFFF:
                     raise ValueError(f"value {v} out of 32-bit range")
                 # < - little endian
