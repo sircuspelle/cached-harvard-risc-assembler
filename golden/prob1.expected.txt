@@ -1,3 +1,0 @@
-Total ticks: 
-L1 Cache hits: 
-Output buffer:

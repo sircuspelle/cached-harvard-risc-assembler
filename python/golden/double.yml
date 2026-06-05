@@ -1,0 +1,144 @@
+in_source: |-
+  .data
+  .org 0x0
+  A_hi: .word 1
+  A_lo: .word 4294967295
+  B_hi: .word 0
+  B_lo: .word 2
+
+  .text
+  .org 0x0
+  start:
+      lui t0, %hi(A_hi)
+      addi t0, t0, %lo(A_hi)
+      lw a1, 0(t0)
+      lw a0, 4(t0)
+      
+      lui t0, %hi(B_hi)
+      addi t0, t0, %lo(B_hi)
+      lw a3, 0(t0)
+      lw a2, 4(t0)
+
+      add s0, a0, a2
+      add s1, a1, a3
+      
+      bltu s0, a0, carry
+      jal zero, done
+
+  carry:
+      addi s1, s1, 1
+
+  done:
+      addi a0, s1, 0
+      jal ra, print_char 
+      addi a0, s0, 0
+      jal ra, print_char 
+      halt
+
+  print_char:
+      addi a0, a0, 48
+      out a0, 0
+      jal zero, 0(ra)
+out_log: |-
+  Tick:    1 | PC: 0000 | Act: 0x000102B7 | t0:65536 a0:0 a1:0
+  Tick:    2 | PC: 0004 | Act: 0x00028293 | t0:65536 a0:0 a1:0
+  Tick:    3 | PC: 0008 | Act: 0x0002A583 | t0:65536 a0:0 a1:1
+  Tick:    4 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:    5 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:    6 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:    7 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:    8 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:    9 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:   10 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:   11 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:   12 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:   13 | PC: 000C | Act: STALL      | t0:65536 a0:0 a1:1
+  Tick:   14 | PC: 000C | Act: 0x0042A503 | t0:65536 a0:4294967295 a1:1
+  Tick:   15 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   16 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   17 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   18 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   19 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   20 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   21 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   22 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   23 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   24 | PC: 0010 | Act: STALL      | t0:65536 a0:4294967295 a1:1
+  Tick:   25 | PC: 0010 | Act: 0x000102B7 | t0:65536 a0:4294967295 a1:1
+  Tick:   26 | PC: 0014 | Act: 0x00828293 | t0:65544 a0:4294967295 a1:1
+  Tick:   27 | PC: 0018 | Act: 0x0002A683 | t0:65544 a0:4294967295 a1:1
+  Tick:   28 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   29 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   30 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   31 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   32 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   33 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   34 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   35 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   36 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   37 | PC: 001C | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   38 | PC: 001C | Act: 0x0042A603 | t0:65544 a0:4294967295 a1:1
+  Tick:   39 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   40 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   41 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   42 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   43 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   44 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   45 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   46 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   47 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   48 | PC: 0020 | Act: STALL      | t0:65544 a0:4294967295 a1:1
+  Tick:   49 | PC: 0020 | Act: 0x00C50433 | t0:65544 a0:4294967295 a1:1
+  Tick:   50 | PC: 0024 | Act: 0x00D584B3 | t0:65544 a0:4294967295 a1:1
+  Tick:   51 | PC: 0028 | Act: 0x00A46463 | t0:65544 a0:4294967295 a1:1
+  Tick:   52 | PC: 0030 | Act: 0x00148493 | t0:65544 a0:4294967295 a1:1
+  Tick:   53 | PC: 0034 | Act: 0x00048513 | t0:65544 a0:2 a1:1
+  Tick:   54 | PC: 0038 | Act: 0x010000EF | t0:65544 a0:2 a1:1
+  Tick:   55 | PC: 0048 | Act: 0x03050513 | t0:65544 a0:50 a1:1
+  Tick:   56 | PC: 004C | Act: 0x00A03073 | t0:65544 a0:50 a1:1
+  Tick:   57 | PC: 0050 | Act: 0x00008067 | t0:65544 a0:50 a1:1
+  Tick:   58 | PC: 003C | Act: 0x00040513 | t0:65544 a0:1 a1:1
+  Tick:   59 | PC: 0040 | Act: 0x008000EF | t0:65544 a0:1 a1:1
+  Tick:   60 | PC: 0048 | Act: 0x03050513 | t0:65544 a0:49 a1:1
+  Tick:   61 | PC: 004C | Act: 0x00A03073 | t0:65544 a0:49 a1:1
+  Tick:   62 | PC: 0050 | Act: 0x00008067 | t0:65544 a0:49 a1:1
+  Tick:   63 | PC: 0044 | Act: HALT       | t0:65544 a0:49 a1:1
+out_stdout: |
+  compilation successful! bin: target.bin, log: build.log
+  ============================================================
+  21
+  stop
+  Total ticks: 63
+  L1 cache hits: 0
+  L1 cache misses: 4
+  output buffer: 21
+  logged in exec.log
+out_code_hex: |-
+  0x00000000 - 01000000 - .word 1
+  0x00000004 - FFFFFFFF - .word 4294967295
+  0x00000008 - 00000000 - .word 0
+  0x0000000C - 02000000 - .word 2
+  0x00000000 - 000102B7 - lui t0, %hi(A_hi)
+  0x00000004 - 00028293 - addi t0, t0, %lo(A_hi)
+  0x00000008 - 0002A583 - lw a1, 0(t0)
+  0x0000000C - 0042A503 - lw a0, 4(t0)
+  0x00000010 - 000102B7 - lui t0, %hi(B_hi)
+  0x00000014 - 00828293 - addi t0, t0, %lo(B_hi)
+  0x00000018 - 0002A683 - lw a3, 0(t0)
+  0x0000001C - 0042A603 - lw a2, 4(t0)
+  0x00000020 - 00C50433 - add s0, a0, a2
+  0x00000024 - 00D584B3 - add s1, a1, a3
+  0x00000028 - 00A46463 - bltu s0, a0, carry
+  0x0000002C - 0080006F - jal zero, done
+  0x00000030 - 00148493 - addi s1, s1, 1
+  0x00000034 - 00048513 - addi a0, s1, 0
+  0x00000038 - 010000EF - jal ra, print_char
+  0x0000003C - 00040513 - addi a0, s0, 0
+  0x00000040 - 008000EF - jal ra, print_char
+  0x00000044 - 00000073 - halt
+  0x00000048 - 03050513 - addi a0, a0, 48
+  0x0000004C - 00A03073 - out a0, 0
+  0x00000050 - 00008067 - jal zero, 0(ra)
+out_code: !!binary |
+  rd6t3lQAAAAQAAAAtwIBAJOCAgCDpQIAA6VCALcCAQCTgoIAg6YCAAOmQgAzBMUAs4TVAGNkpABv
+  AIAAk4QUABOFBADvAAABEwUEAO8AgABzAAAAEwUFA3MwoABngAAAAQAAAP////8AAAAAAgAAAA==
