@@ -80,6 +80,45 @@ class IOController:
             print(char, end="", flush=True)
 
 
+class ImmGenerator:
+    @staticmethod
+    def generate(instruction: int) -> int:
+        opcode = instruction & 0x7F
+        funct3 = (instruction >> 12) & 0x7
+
+        if opcode in (0x13, 0x03, 0x67) or (opcode == 0x73 and funct3 in (0x0, 0x2)):
+            imm = (instruction >> 20) & 0xFFF
+            return imm if (imm & 0x800) == 0 else imm - 0x1000
+
+        elif opcode == 0x23 or (opcode == 0x73 and funct3 == 0x3):
+            imm_11_5 = (instruction >> 25) & 0x7F
+            imm_4_0 = (instruction >> 7) & 0x1F
+            imm = (imm_11_5 << 5) | imm_4_0
+            return imm if (imm & 0x800) == 0 else imm - 0x1000
+
+        elif opcode == 0x63:
+            imm_12 = (instruction >> 31) & 0x1
+            imm_11 = (instruction >> 7) & 0x1
+            imm_10_5 = (instruction >> 25) & 0x3F
+            imm_4_1 = (instruction >> 8) & 0xF
+            imm = (imm_12 << 12) | (imm_11 << 11) | (imm_10_5 << 5) | (imm_4_1 << 1)
+            return imm if (imm & 0x1000) == 0 else imm - 0x2000
+
+        elif opcode == 0x37:
+            imm = (instruction >> 12) & 0xFFFFF
+            return imm << 12
+
+        elif opcode == 0x6F:
+            imm_20 = (instruction >> 31) & 0x1
+            imm_19_12 = (instruction >> 12) & 0xFF
+            imm_11 = (instruction >> 20) & 0x1
+            imm_10_1 = (instruction >> 21) & 0x3FF
+            imm = (imm_20 << 20) | (imm_19_12 << 12) | (imm_11 << 11) | (imm_10_1 << 1)
+            return imm if (imm & 0x100000) == 0 else imm - 0x200000
+
+        return 0
+
+
 class ControlUnit:
     @staticmethod
     def decode(instruction: int) -> dict:
@@ -110,7 +149,6 @@ class ControlUnit:
             "EI": False,
             "DI": False,
             "ALUOp": "ADD",
-            "Imm": 0,
             "rs1": rs1,
             "rs2": rs2,
             "rd": rd,
@@ -137,19 +175,14 @@ class ControlUnit:
             elif funct3 == 0x6 and funct7 == 0x01:
                 signals["ALUOp"] = "REM"
 
-        # TODO: пока скорее задумка чем что-то готовое
         # I-type (addi, andi)
         elif opcode == 0x13:
             signals["RegWr"] = True
             signals["ALUSrc"] = "IMM"
-            imm = (instruction >> 20) & 0xFFF
-            signals["Imm"] = imm if (imm & 0x800) == 0 else imm - 0x1000
-
             if funct3 == 0x0:
                 signals["ALUOp"] = "ADD"
             elif funct3 == 0x7:
                 signals["ALUOp"] = "AND"
-            # TODO: докинуты прямые команды ORI и XORI потому что могу но надо думать ещё
             elif funct3 == 0x6:
                 signals["ALUOp"] = "OR"
             elif funct3 == 0x4:
@@ -162,28 +195,18 @@ class ControlUnit:
             signals["MemRd"] = True
             signals["ALUSrc"] = "IMM"
             signals["ALUOp"] = "ADD"
-            imm = (instruction >> 20) & 0xFFF
-            signals["Imm"] = imm if (imm & 0x800) == 0 else imm - 0x1000
 
         # Store
         elif opcode == 0x23:
             signals["MemWr"] = True
             signals["ALUSrc"] = "IMM"
             signals["ALUOp"] = "ADD"
-            imm = ((instruction >> 25) << 5) | ((instruction >> 7) & 0x1F)
-            signals["Imm"] = imm if (imm & 0x800) == 0 else imm - 0x1000
 
         # TODO: обдумать описанную на схеме петлю с обработкой проверки условия от аккумултора
         # Branch
         elif opcode == 0x63:
             signals["Branch"] = True
             signals["ALUOp"] = "SUB"
-            imm_12 = (instruction >> 31) & 0x1
-            imm_11 = (instruction >> 7) & 0x1
-            imm_10_5 = (instruction >> 25) & 0x3F
-            imm_4_1 = (instruction >> 8) & 0xF
-            imm = (imm_12 << 12) | (imm_11 << 11) | (imm_10_5 << 5) | (imm_4_1 << 1)
-            signals["Imm"] = imm if (imm & 0x1000) == 0 else imm - 0x2000
             # TODO: костыльное появление Funct3 в сигналах
             signals["Funct3"] = funct3
 
@@ -192,23 +215,11 @@ class ControlUnit:
             signals["RegWr"] = True
             signals["ALUSrc"] = "IMM"
             signals["ALUOp"] = "COPY_B"
-            signals["Imm"] = (instruction >> 12) & 0xFFFFF
-            imm_value = (instruction >> 12) & 0xFFFFF
-            signals["Imm"] = imm_value << 12
 
         # JAL
         elif opcode == 0x6F:
             signals["RegWr"] = True
             signals["Jump"] = True
-            # imm[20|10:1|11|19:12])
-            imm_20 = (instruction >> 31) & 0x1
-            imm_19_12 = (instruction >> 12) & 0xFF
-            imm_11 = (instruction >> 20) & 0x1
-            imm_10_1 = (instruction >> 21) & 0x3FF
-            imm = (imm_20 << 20) | (imm_19_12 << 12) | (imm_11 << 11) | (imm_10_1 << 1)
-            if imm & 0x100000:
-                imm = imm - 0x200000
-            signals["Imm"] = imm
 
         # JALR
         elif opcode == 0x67:
@@ -217,39 +228,28 @@ class ControlUnit:
             signals["ALUSrc"] = "IMM"
             # TODO: костыть ADD_REG_IMM, перенести на ADD
             signals["ALUOp"] = "ADD_REG_IMM"
-            imm = (instruction >> 20) & 0xFFF
-            if imm & 0x800:
-                imm = imm - 0x1000
-            signals["Imm"] = imm
 
         # порты, прерывания, halt
         elif opcode == 0x73:
-            imm = (instruction >> 20) & 0xFFF
             # IN (I-type)
             if funct3 == 0x2:
                 signals["RegWr"] = True
                 signals["PortRd"] = True
-                signals["Imm"] = imm  # номер порта
 
             # OUT (S-type)
             elif funct3 == 0x3:
                 signals["PortWr"] = True
-                # S-type: imm находится в битах [11:5] и [4:0]
-                # TODO: пока костыль, это должен делать IMM генератор со схемы
-                imm_11_5 = (instruction >> 25) & 0x7F
-                imm_4_0 = (instruction >> 7) & 0x1F
-                port = (imm_11_5 << 5) | imm_4_0
-                signals["Imm"] = port
 
             # EI, DI, IRET, Halt
             elif funct3 == 0x0:
-                if imm == 0x000:
+                funct12 = (instruction >> 20) & 0xFFF
+                if funct12 == 0x000:
                     signals["Halt"] = True
-                elif imm == 0x302:
+                elif funct12 == 0x302:
                     signals["IRET"] = True
-                elif imm == 0x001:
+                elif funct12 == 0x001:
                     signals["EI"] = True
-                elif imm == 0x002:
+                elif funct12 == 0x002:
                     signals["DI"] = True
 
         return signals
@@ -293,6 +293,7 @@ class Processor:
 
         # Decode
         sig = self.cu.decode(instruction)
+        imm_val = ImmGenerator.generate(instruction)
 
         if sig["Halt"]:
             self.halted = True
@@ -301,7 +302,7 @@ class Processor:
 
         # Execution
         val_a = self.registers[sig["rs1"]]
-        val_b = sig["Imm"] if sig["ALUSrc"] == "IMM" else self.registers[sig["rs2"]]
+        val_b = imm_val if sig["ALUSrc"] == "IMM" else self.registers[sig["rs2"]]
         alu_result = 0
 
         if sig["ALUOp"] == "ADD":
@@ -337,10 +338,10 @@ class Processor:
             self.stall_cycles += stalls
 
         elif sig["PortRd"]:
-            write_back_val = self.io.read_port(sig["Imm"])
+            write_back_val = self.io.read_port(imm_val)
 
         elif sig["PortWr"]:
-            self.io.write_port(sig["Imm"], self.registers[sig["rs2"]])
+            self.io.write_port(imm_val, self.registers[sig["rs2"]])
 
         # control flow: conditional
         if sig["Branch"]:
@@ -352,22 +353,22 @@ class Processor:
             val_b_s = to_signed(val_b)
 
             if sig["Funct3"] == 0 and alu_result == 0:  # beq
-                next_pc = self.pc + sig["Imm"]
+                next_pc = self.pc + imm_val
             elif sig["Funct3"] == 1 and alu_result != 0:  # bne
-                next_pc = self.pc + sig["Imm"]
+                next_pc = self.pc + imm_val
             elif sig["Funct3"] == 4 and val_a_s < val_b_s:  # blt знаковое
-                next_pc = self.pc + sig["Imm"]
+                next_pc = self.pc + imm_val
             elif sig["Funct3"] == 5 and val_a_s >= val_b_s:  # bge знаковое
-                next_pc = self.pc + sig["Imm"]
+                next_pc = self.pc + imm_val
             elif sig["Funct3"] == 6 and val_a < val_b:  # bltu беззнаковое <
-                next_pc = self.pc + sig["Imm"]
+                next_pc = self.pc + imm_val
 
         if sig["Jump"]:
             write_back_val = self.pc + 4
             if sig["ALUOp"] == "ADD_REG_IMM":  # JALR
                 next_pc = alu_result
             else:  # JAL
-                next_pc = self.pc + sig["Imm"]
+                next_pc = self.pc + imm_val
 
         if sig["EI"]:
             self.interrupts_enabled = True
