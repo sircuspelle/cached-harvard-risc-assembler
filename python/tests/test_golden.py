@@ -1,5 +1,6 @@
 import os
 import subprocess
+
 import pytest
 
 TRANSLATOR = "python/translator.py"
@@ -7,7 +8,7 @@ MACHINE = "python/machine.py"
 
 
 @pytest.mark.parametrize(
-    "asm_file, input_file, expected_output",
+    ("asm_file", "input_file", "expected_output"),
     [
         ("algorithms/cat.s", "golden/cat_input.txt", "Test"),
         pytest.param("algorithms/prob1.s", "", "906609"),

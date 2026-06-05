@@ -1,7 +1,8 @@
-import struct
+from __future__ import annotations
+
 import argparse
-import sys
-from typing import List, Dict, Tuple, Optional
+import ast
+import struct
 
 
 class CacheL1:
@@ -19,7 +20,7 @@ class CacheL1:
         tag = word_addr // 8
         return index, tag
 
-    def read(self, address: int) -> Tuple[int, int]:
+    def read(self, address: int) -> tuple[int, int]:
         if address >= 0x10000:
             address = address - 0x10000
 
@@ -29,13 +30,13 @@ class CacheL1:
         if line["valid"] and line["tag"] == tag:
             self.hits += 1
             return line["data"], self.hit_cycles
-        else:
-            self.misses += 1
-            if address + 4 > len(self.data_memory):
-                raise IndexError(f"data memory access out of bounds: {address}")
-            val = struct.unpack("<i", self.data_memory[address : address + 4])[0]
-            self.cache_lines[index] = {"valid": True, "tag": tag, "data": val}
-            return val, self.miss_cycles
+
+        self.misses += 1
+        if address + 4 > len(self.data_memory):
+            raise IndexError(f"data memory access out of bounds: {address}")
+        val = struct.unpack("<i", self.data_memory[address : address + 4])[0]
+        self.cache_lines[index] = {"valid": True, "tag": tag, "data": val}
+        return val, self.miss_cycles
 
     def write(self, address: int, value: int) -> int:
         if address >= 0x10000:
@@ -49,7 +50,7 @@ class CacheL1:
 
 
 class IOController:
-    def __init__(self, input_schedule: List[Tuple[int, int]], output_buffer: list):
+    def __init__(self, input_schedule: list[tuple[int, int]], output_buffer: list):
         self.input_schedule = input_schedule
         self.output_buffer = output_buffer
         self.port_in_data = 0
@@ -182,7 +183,7 @@ class ControlUnit:
             imm_4_1 = (instruction >> 8) & 0xF
             imm = (imm_12 << 12) | (imm_11 << 11) | (imm_10_5 << 5) | (imm_4_1 << 1)
             signals["Imm"] = imm if (imm & 0x1000) == 0 else imm - 0x2000
-            # TODO: костыльное появление Funct3 в сигналах?
+            # TODO: костыльное появление Funct3 в сигналах
             signals["Funct3"] = funct3
 
         # LUI
@@ -253,7 +254,7 @@ class ControlUnit:
 
 
 class Processor:
-    def __init__(self, text_mem: List[int], data_mem: bytearray, io_ctrl: IOController):
+    def __init__(self, text_mem: list[int], data_mem: bytearray, io_ctrl: IOController):
         self.instruction_memory = text_mem
         self.cache = CacheL1(data_mem)
         self.io = io_ctrl
@@ -297,30 +298,30 @@ class Processor:
             return
 
         # Execution
-        valA = self.registers[sig["rs1"]]
-        valB = sig["Imm"] if sig["ALUSrc"] == "IMM" else self.registers[sig["rs2"]]
+        val_a = self.registers[sig["rs1"]]
+        val_b = sig["Imm"] if sig["ALUSrc"] == "IMM" else self.registers[sig["rs2"]]
         alu_result = 0
 
         if sig["ALUOp"] == "ADD":
-            alu_result = valA + valB
+            alu_result = val_a + val_b
         elif sig["ALUOp"] == "ADD_REG_IMM":
-            alu_result = valA + valB
+            alu_result = val_a + val_b
         elif sig["ALUOp"] == "SUB":
-            alu_result = valA - valB
+            alu_result = val_a - val_b
         elif sig["ALUOp"] == "AND":
-            alu_result = valA & valB
+            alu_result = val_a & val_b
         elif sig["ALUOp"] == "OR":
-            alu_result = valA | valB
+            alu_result = val_a | val_b
         elif sig["ALUOp"] == "XOR":
-            alu_result = valA ^ valB
+            alu_result = val_a ^ val_b
         elif sig["ALUOp"] == "COPY_B":
-            alu_result = valB
+            alu_result = val_b
         elif sig["ALUOp"] == "MUL":
-            alu_result = (valA * valB) & 0xFFFFFFFF
+            alu_result = (val_a * val_b) & 0xFFFFFFFF
         elif sig["ALUOp"] == "DIV":
-            alu_result = (valA // valB) if valB != 0 else 0
+            alu_result = (val_a // val_b) if val_b != 0 else 0
         elif sig["ALUOp"] == "REM":
-            alu_result = (valA % valB) if valB != 0 else valA
+            alu_result = (val_a % val_b) if val_b != 0 else val_a
         next_pc = self.pc + 4
         write_back_val = alu_result
 
@@ -345,18 +346,18 @@ class Processor:
             def to_signed(x):
                 return x if x < 0x80000000 else x - 0x100000000
 
-            valA_s = to_signed(valA)
-            valB_s = to_signed(valB)
+            val_a_s = to_signed(val_a)
+            val_b_s = to_signed(val_b)
 
             if sig["Funct3"] == 0 and alu_result == 0:  # beq
                 next_pc = self.pc + sig["Imm"]
             elif sig["Funct3"] == 1 and alu_result != 0:  # bne
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 4 and valA_s < valB_s:  # blt знаковое
+            elif sig["Funct3"] == 4 and val_a_s < val_b_s:  # blt знаковое
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 5 and valA_s >= valB_s:  # bge знаковое
+            elif sig["Funct3"] == 5 and val_a_s >= val_b_s:  # bge знаковое
                 next_pc = self.pc + sig["Imm"]
-            elif sig["Funct3"] == 6 and valA < valB:  # bltu беззнаковое <
+            elif sig["Funct3"] == 6 and val_a < val_b:  # bltu беззнаковое <
                 next_pc = self.pc + sig["Imm"]
 
         if sig["Jump"]:
@@ -399,10 +400,7 @@ class Processor:
         self.journal.append(f"Tick: {self.ticks:4} | PC: {self.pc:04X} | Act: {action:10} | {regs}")
 
 
-import ast
-
-
-def load_binary(file_path: str) -> Tuple[List[int], bytearray]:
+def load_binary(file_path: str) -> tuple[list[int], bytearray]:
     with open(file_path, "rb") as f:
         header = f.read(12)
         magic, text_size, data_size = struct.unpack("<I I I", header)
@@ -421,10 +419,10 @@ def load_binary(file_path: str) -> Tuple[List[int], bytearray]:
         return text_mem, data_mem
 
 
-def load_schedule(file_path: str) -> List[Tuple[int, int]]:
+def load_schedule(file_path: str) -> list[tuple[int, int]]:
     if not file_path:
         return []
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
         raw_schedule = ast.literal_eval(content)
 

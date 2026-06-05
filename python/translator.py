@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 import argparse
-import struct
-import sys
 import re
-from typing import List, Dict, Tuple
+import struct
 
 # codes for source registers and destination regitsres
 REGISTERS = {
@@ -103,13 +103,13 @@ def encode_j_type(opcode: int, rd: int, imm: int) -> int:
 
 class Translator:
     def __init__(self):
-        self.text_section: List[int] = []  # commands saved in words
+        self.text_section: list[int] = []  # commands saved in words
         self.data_section: bytearray = bytearray()  # data saved by bytes
 
-        self.labels: Dict[str, int] = {}  # label name linked with address
-        self.label_sections: Dict[str, str] = {}  # lable name linked with section ("text" | "data")
+        self.labels: dict[str, int] = {}  # label name linked with address
+        self.label_sections: dict[str, str] = {}  # lable name linked with section ("text" | "data")
 
-    def translate(self, source_code: str) -> Tuple[bytes, str]:
+    def translate(self, source_code: str) -> tuple[bytes, str]:
         # remove commets, divide label and code into lines, and later will be added macros preprocessing
         lines = self._preprocess(source_code)
 
@@ -124,7 +124,7 @@ class Translator:
 
         return binary_data, debug_log
 
-    def _preprocess(self, source_code: str) -> List[str]:
+    def _preprocess(self, source_code: str) -> list[str]:
         lines = []
         for line in source_code.splitlines():
             # remove comments
@@ -142,7 +142,7 @@ class Translator:
         # TODO: need to add macros prepocessing but i dont have enough time
         return lines
 
-    def _first_pass(self, lines: List[str]):
+    def _first_pass(self, lines: list[str]):
         current_section = ".text"
         text_address = 0
         data_address = 0x10000  # harvard offset
@@ -186,7 +186,7 @@ class Translator:
                     str_content = str_content.replace("\\n", "\n")
                     data_address += len(str_content) + 1
 
-    def _second_pass(self, lines: List[str]) -> str:
+    def _second_pass(self, lines: list[str]) -> str:
         debug_lines = []
         current_section = ".text"
         text_address = 0
@@ -216,6 +216,7 @@ class Translator:
                 # translate .word or .string
                 self._assemble_data(line)
                 # TODO: make log from data needs to be implemented and adress data processing as well
+                debug_lines.append(f"0x{data_address:08X} - {line}")  # bad code to avoid format error
 
         return "\n".join(debug_lines)
 
@@ -303,7 +304,7 @@ class Translator:
             return encode_r_type(opcode, funct3, funct7, rd, rs1, rs2)
 
         # I type (arithmetic with imm value)
-        elif mnemonic in ("addi", "andi", "ori", "xori"):
+        if mnemonic in ("addi", "andi", "ori", "xori"):
             rd = self._get_reg(args[0])
             rs1 = self._get_reg(args[1])
             imm = self._resolve_imm(args[2], address)
@@ -321,7 +322,7 @@ class Translator:
             return encode_i_type(opcode, funct3, rd, rs1, imm)
 
         # I type (load from memory)
-        elif mnemonic in ("lw", "lb"):
+        if mnemonic in ("lw", "lb"):
             rd = self._get_reg(args[0])
             # imm(rs1) like 16(sp)
             match = re.match(r"(-?\w+)\((\w+)\)", args[1])
@@ -336,7 +337,7 @@ class Translator:
             return encode_i_type(opcode, funct3, rd, rs1, imm)
 
         # S type (save in memory)
-        elif mnemonic in ("sw", "sb"):
+        if mnemonic in ("sw", "sb"):
             rs2 = self._get_reg(args[0])  # value to save
             # imm(rs1) like 16(sp)
             match = re.match(r"(-?\w+)\((\w+)\)", args[1])
@@ -348,13 +349,13 @@ class Translator:
             return encode_s_type(opcode, funct3, rs1, rs2, imm)
 
         # U type
-        elif mnemonic == "lui":
+        if mnemonic == "lui":
             rd = self._get_reg(args[0])
             imm = self._resolve_imm(args[1], address)
             return encode_u_type(0x37, rd, imm)
 
         # B type
-        elif mnemonic in ("beq", "bne", "blt", "bge", "bltu", "ble"):
+        if mnemonic in ("beq", "bne", "blt", "bge", "bltu", "ble"):
             rs1 = self._get_reg(args[0])
             rs2 = self._get_reg(args[1])
             imm = self._resolve_imm(args[2], address)
@@ -377,7 +378,7 @@ class Translator:
 
         # J type (jump and link relative: PC = [ PC + offset ] = [ correct: label_addr | failure-safe: <offset>(<rs>)])
         # usually to call procedure
-        elif mnemonic == "jal":
+        if mnemonic == "jal":
             rd = self._get_reg(args[0])
             # PC = [ PC + offset ] = [label_addr | <offset>(<rs>)])
             if "(" in args[1]:
@@ -393,7 +394,7 @@ class Translator:
 
         # I type (jump and link register: PC = [ RS1 + offset] = <offset>(<register>) )
         # usually to return from procedure
-        elif mnemonic == "jalr":
+        if mnemonic == "jalr":
             rd = self._get_reg(args[0])
             # <offset>(<rs>) e.g. 0(ra)
             match = re.match(r"(-?\w+)\((\w+)\)", args[1])
@@ -408,32 +409,32 @@ class Translator:
             return encode_i_type(opcode, funct3, rd, rs1, imm)
 
         # I type (port-mapped IO)
-        elif mnemonic == "in":
+        if mnemonic == "in":
             # in rd, port
             rd = self._get_reg(args[0])
             port = int(args[1])
             return encode_i_type(0x73, 0x2, rd, 0, port)
 
-        elif mnemonic == "out":
+        if mnemonic == "out":
             # out rs, port
             rs = self._get_reg(args[0])
             port = int(args[1])
             return encode_s_type(0x73, 0x3, 0, rs, port)
 
-        elif mnemonic == "halt":
+        if mnemonic == "halt":
             return encode_i_type(0x73, 0x0, 0, 0, 0x000)
-        elif mnemonic == "iret":
+        if mnemonic == "iret":
             return encode_i_type(0x73, 0x0, 0, 0, 0x302)
-        elif mnemonic == "ei":
+        if mnemonic == "ei":
             return encode_i_type(0x73, 0x0, 0, 0, 0x001)
-        elif mnemonic == "di":
+        if mnemonic == "di":
             return encode_i_type(0x73, 0x0, 0, 0, 0x002)
 
         # pseudo
-        elif mnemonic == "j":  # j offset -> jal zero, offset
+        if mnemonic == "j":  # j offset -> jal zero, offset
             imm = self._resolve_imm(args[0], address)
             return encode_j_type(0x6F, REGISTERS["zero"], imm)
-        elif mnemonic == "beqz":  # beqz rs, offset -> beq rs, zero, offset
+        if mnemonic == "beqz":  # beqz rs, offset -> beq rs, zero, offset
             rs = self._get_reg(args[0])
             imm = self._resolve_imm(args[1], address)
             return encode_b_type(0x63, 0x0, rs, REGISTERS["zero"], imm)
@@ -486,7 +487,7 @@ def main():
 
     args = parser.parse_args()
 
-    with open(args.input, "r", encoding="utf-8") as f:
+    with open(args.input, encoding="utf-8") as f:
         source_code = f.read()
 
     translator = Translator()

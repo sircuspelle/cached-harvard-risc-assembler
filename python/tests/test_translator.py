@@ -1,9 +1,11 @@
-import pytest
 import struct
+
+import pytest
+
 from translator import Translator
 
 
-@pytest.fixture
+@pytest.fixture()
 def translator():
     t = Translator()
     t.labels = {"my_label": 0x0000000C, "data_var": 0x00000010}
