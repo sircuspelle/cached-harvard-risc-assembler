@@ -34,7 +34,7 @@ class CacheL1:
         self.misses += 1
         if address + 4 > len(self.data_memory):
             raise IndexError(f"data memory access out of bounds: {address}")
-        val = struct.unpack("<i", self.data_memory[address : address + 4])[0]
+        val = struct.unpack("<I", self.data_memory[address : address + 4])[0]
         self.cache_lines[index] = {"valid": True, "tag": tag, "data": val}
         return val, self.miss_cycles
 
@@ -43,7 +43,7 @@ class CacheL1:
             address = address - 0x10000
 
         index, tag = self._get_index_and_tag(address)
-        struct.pack_into("<i", self.data_memory, address, value)
+        struct.pack_into("<I", self.data_memory, address, value)
 
         self.cache_lines[index] = {"valid": True, "tag": tag, "data": value}
         return self.miss_cycles
