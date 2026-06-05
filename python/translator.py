@@ -124,23 +124,90 @@ class Translator:
 
         return binary_data, debug_log
 
+    def _strip_comments(self, line: str):
+        in_string = False
+        for i, char in enumerate(line):
+            if char == '"':
+                in_string = not in_string
+            elif char == ';' and not in_string:
+                return line[:i].strip()
+        return line.strip()
+
     def _preprocess(self, source_code: str) -> list[str]:
         lines = []
         for line in source_code.splitlines():
-            # remove comments
-            line = line.split(";")[0].strip()
-            if line:
-                # search for label
-                if ":" in line:
-                    label_part, rest = line.split(":", 1)
-                    if label_part.strip():
-                        lines.append(label_part.strip() + ":")
-                    if rest.strip():
-                        lines.append(rest.strip())
-                else:
-                    lines.append(line)
-        # TODO: need to add macros prepocessing but i dont have enough time
-        return lines
+            line = self._strip_comment(line)
+            if not line:
+                continue
+            if ':' in line and not line.startswith('.'):
+                label_part, rest = line.split(':', 1)
+                if label_part.strip():
+                    lines.append(label_part.strip() + ':')
+                if rest.strip():
+                    lines.append(rest.strip())
+            else:
+                lines.append(line)
+
+        defines = {}
+        macros = {}
+        is_in_macro = False
+        current_macro_name = ""
+        current_macro_body = []
+        condition_stack = [True]
+        
+        final_lines = []
+
+        for line in lines:
+            if line.startswith("%define"):
+                parts = line.split(maxsplit=2)
+                if len(parts) == 3:
+                    defines[parts[1]] = parts[2]
+                continue
+            
+            if line.startswith("%ifdef"):
+                name = line.split()[1]
+                condition_stack.append(name in defines)
+                continue
+            
+            if line.startswith("%ifndef"):
+                name = line.split()[1]
+                condition_stack.append(name not in defines)
+                continue
+
+            if line.startswith("%endif"):
+                if len(condition_stack) > 1:
+                    condition_stack.pop()
+                continue
+
+            if not condition_stack[-1]:
+                continue
+
+            if line.startswith("%macro"):
+                is_in_macro = True
+                current_macro_name = line.split()[1]
+                current_macro_body = []
+                continue
+
+            if line.startswith("%endmacro"):
+                is_in_macro = False
+                macros[current_macro_name] = current_macro_body
+                continue
+
+            if is_in_macro:
+                current_macro_body.append(line)
+                continue
+
+            for name, value in defines.items():
+                line = re.sub(rf'\b{name}\b', value, line)
+
+            parts = line.split(maxsplit=1)
+            first_word = parts[0]
+            if first_word in macros:
+                final_lines.extend(macros[first_word])
+            else:
+                final_lines.append(line)
+
+        return final_lines
 
     def _first_pass(self, lines: list[str]):
         current_section = ".text"
