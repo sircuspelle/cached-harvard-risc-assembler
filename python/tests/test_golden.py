@@ -46,7 +46,7 @@ def test_pipeline(asm_file, input_file, expected_output, tmp_path):
 
     output_line = ""
     for line in run_res.stdout.splitlines():
-        if line.startswith("Output buffer:"):
-            output_line = line.replace("Output buffer: ", "").lstrip()
+        if line.startswith("output buffer:"):
+            output_line = line.replace("output buffer: ", "").lstrip()
 
     assert output_line == expected_output, f"Expected '{expected_output}', got '{output_line}'"
