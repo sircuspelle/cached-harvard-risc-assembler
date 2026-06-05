@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
 import struct
 
 
@@ -467,7 +468,7 @@ def main():
 
     with open(args.log, "w") as f:
         f.write("\n".join(processor.journal))
-    print(f"logged in {args.log}")
+    print(f"logged in {os.path.basename(args.log)}")
 
 
 if __name__ == "__main__":

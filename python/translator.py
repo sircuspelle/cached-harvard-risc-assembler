@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import struct
 
@@ -576,7 +577,7 @@ def main():
     with open(args.log, "w") as f:
         f.write(debug_log)
 
-    print(f"compilation successful! bin: {args.output}, log: {args.log}")
+    print(f"compilation successful! bin: {os.path.basename(args.output)}, log: {os.path.basename(args.log)}")
 
 
 if __name__ == "__main__":

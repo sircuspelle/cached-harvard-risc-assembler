@@ -94,6 +94,7 @@ ignore = [
     "PTH100", # `os.path.abspath()` should be replaced by `Path.resolve()`
     "TRY003", # added by me to avoid error classes - too complex
     "ERA001", # added by me because what is commented out code
+    "PTH119", # added by me because os.path.name 
 ]
 unfixable = [
     "ERA001", # prohibit to "auto-fix" (=remove) commented-out code
