@@ -136,7 +136,7 @@ class Translator:
     def _preprocess(self, source_code: str) -> list[str]:
         lines = []
         for line in source_code.splitlines():
-            line = self._strip_comment(line)
+            line = self._strip_comments(line)
             if not line:
                 continue
             if ':' in line and not line.startswith('.'):
