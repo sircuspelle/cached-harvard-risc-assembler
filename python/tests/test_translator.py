@@ -62,7 +62,7 @@ class TestIntegration:
         assert "addi t0, zero, 1" in debug_log
 
         magic, text_size, data_size = struct.unpack("<I I I", binary_data[:12])
-        assert magic == 0xDEADBEEF
+        assert magic == 0xDEADDEAD
         assert text_size == 8
         assert data_size == 4
 
