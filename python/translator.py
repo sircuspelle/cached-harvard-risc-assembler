@@ -129,7 +129,7 @@ class Translator:
         for i, char in enumerate(line):
             if char == '"':
                 in_string = not in_string
-            elif char == ';' and not in_string:
+            elif char == ";" and not in_string:
                 return line[:i].strip()
         return line.strip()
 
@@ -139,10 +139,10 @@ class Translator:
             line = self._strip_comments(line)
             if not line:
                 continue
-            if ':' in line and not line.startswith('.'):
-                label_part, rest = line.split(':', 1)
+            if ":" in line and not line.startswith("."):
+                label_part, rest = line.split(":", 1)
                 if label_part.strip():
-                    lines.append(label_part.strip() + ':')
+                    lines.append(label_part.strip() + ":")
                 if rest.strip():
                     lines.append(rest.strip())
             else:
@@ -154,7 +154,7 @@ class Translator:
         current_macro_name = ""
         current_macro_body = []
         condition_stack = [True]
-        
+
         final_lines = []
 
         for line in lines:
@@ -163,12 +163,12 @@ class Translator:
                 if len(parts) == 3:
                     defines[parts[1]] = parts[2]
                 continue
-            
+
             if line.startswith("%ifdef"):
                 name = line.split()[1]
                 condition_stack.append(name in defines)
                 continue
-            
+
             if line.startswith("%ifndef"):
                 name = line.split()[1]
                 condition_stack.append(name not in defines)
@@ -198,7 +198,7 @@ class Translator:
                 continue
 
             for name, value in defines.items():
-                line = re.sub(rf'\b{name}\b', value, line)
+                line = re.sub(rf"\b{name}\b", value, line)
 
             parts = line.split(maxsplit=1)
             first_word = parts[0]
@@ -281,7 +281,6 @@ class Translator:
 
             elif current_section == ".data":
                 data_bytes = self._assemble_data(line)
-                self.data_section.extend(data_bytes)
                 hex_str = data_bytes.hex().upper()
                 debug_lines.append(f"0x{data_address:08X} - {hex_str} - {line}")
                 data_address += len(data_bytes)
@@ -541,16 +540,17 @@ class Translator:
 
         elif directive == ".string":
             match = re.search(r'"(.*)"', line)
-            if match: 
+            if match:
                 str_content = match.group(1).replace("\\n", "\n").replace("\\t", "\t")
                 byte_array = str_content.encode("utf-8") + b"\x00"
 
                 data_bytes.extend(byte_array)
                 # alignment
-            
+
                 padding = (4 - (len(data_bytes) % 4)) % 4
                 data_bytes.extend(b"\x00" * padding)
 
+        self.data_section.extend(data_bytes)
         return bytes(data_bytes)
 
 
