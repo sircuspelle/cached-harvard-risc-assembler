@@ -280,10 +280,11 @@ class Translator:
                 text_address += 4
 
             elif current_section == ".data":
-                # translate .word or .string
-                self._assemble_data(line)
-                # TODO: make log from data needs to be implemented and adress data processing as well
-                debug_lines.append(f"0x{data_address:08X} - {line}")  # bad code to avoid format error
+                data_bytes = self._assemble_data(line)
+                self.data_section.extend(data_bytes)
+                hex_str = data_bytes.hex().upper()
+                debug_lines.append(f"0x{data_address:08X} - {hex_str} - {line}")
+                data_address += len(data_bytes)
 
         return "\n".join(debug_lines)
 
@@ -516,6 +517,7 @@ class Translator:
 
         parts = line.split(maxsplit=1)
         directive = parts[0]
+        data_bytes = bytearray()
 
         if directive == ".word":
             values = parts[1].split(",")
@@ -532,17 +534,21 @@ class Translator:
                     raise ValueError(f"value {v} out of 32-bit range")
                 # < - little endian
                 # I - unsigned 32
-                self.data_section.extend(struct.pack("<I", v & 0xFFFFFFFF))
+                data_bytes.extend(struct.pack("<I", v & 0xFFFFFFFF))
 
         elif directive == ".string":
-            str_content = line[line.find('"') + 1 : line.rfind('"')]
-            str_content = str_content.replace("\\n", "\n").replace("\\t", "\t")
-            byte_array = str_content.encode("utf-8") + b"\x00"
+            match = re.search(r'"(.*)"', line)
+            if match: 
+                str_content = match.group(1).replace("\\n", "\n").replace("\\t", "\t")
+                byte_array = str_content.encode("utf-8") + b"\x00"
 
-            self.data_section.extend(byte_array)
-            # alignment
-            padding = (4 - (len(self.data_section) % 4)) % 4
-            self.data_section.extend(b"\x00" * padding)
+                data_bytes.extend(byte_array)
+                # alignment
+            
+                padding = (4 - (len(data_bytes) % 4)) % 4
+                data_bytes.extend(b"\x00" * padding)
+
+        return bytes(data_bytes)
 
 
 # cli
