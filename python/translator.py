@@ -102,7 +102,7 @@ def encode_j_type(opcode: int, rd: int, imm: int) -> int:
 
 
 class Translator:
-    def __init__(self):
+    def __init__(self) -> None:
         self.text_section: list[int] = []  # commands saved in words
         self.data_section: bytearray = bytearray()  # data saved by bytes
 
@@ -152,7 +152,7 @@ class Translator:
         macros = {}
         is_in_macro = False
         current_macro_name = ""
-        current_macro_body = []
+        current_macro_body: list[str] = []
         condition_stack = [True]
 
         final_lines = []
@@ -408,12 +408,13 @@ class Translator:
             rs2 = self._get_reg(args[0])  # value to save
             # imm(rs1) like 16(sp)
             match = re.match(r"(-?\w+)\((\w+)\)", args[1])
-            imm = self._resolve_imm(match.group(1), address)
-            rs1 = self._get_reg(match.group(2))  # get address
+            if match:
+                imm = self._resolve_imm(match.group(1), address)
+                rs1 = self._get_reg(match.group(2))  # get address
 
-            opcode = 0x23
-            funct3 = 0x2 if mnemonic == "sw" else 0x0
-            return encode_s_type(opcode, funct3, rs1, rs2, imm)
+                opcode = 0x23
+                funct3 = 0x2 if mnemonic == "sw" else 0x0
+                return encode_s_type(opcode, funct3, rs1, rs2, imm)
 
         # U type
         if mnemonic == "lui":

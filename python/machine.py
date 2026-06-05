@@ -192,7 +192,8 @@ class ControlUnit:
             signals["ALUSrc"] = "IMM"
             signals["ALUOp"] = "COPY_B"
             signals["Imm"] = (instruction >> 12) & 0xFFFFF
-            signals["Imm"] = signals["Imm"] << 12
+            imm_value = (instruction >> 12) & 0xFFFFF
+            signals["Imm"] = imm_value << 12
 
         # JAL
         elif opcode == 0x6F:
@@ -269,7 +270,7 @@ class Processor:
         self.stall_cycles = 0
         self.halted = False
 
-        self.journal = []
+        self.journal: list[str] = []
 
     def tick(self):
         # защёлкнули PC
