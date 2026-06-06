@@ -130,13 +130,13 @@ class ControlUnit:
         funct7 = (instruction >> 25) & 0x7F
 
         # TODO: PortRd, PortWr согласовать со схемой
-        # TODO: Halt сигнал согласовать со схемой и ещё подумать над ним
         signals = {
             "RegWr": False,
             "MemRd": False,
             "MemWr": False,
             "PortRd": False,
             "PortWr": False,
+            "PCWr": True,
             "ALUSrc": "REG",
             "SelPC": "PC+4",
             "BranchOp": "BEQ",
@@ -283,11 +283,6 @@ class Processor:
 
         self.io.tick_check(self.ticks)
 
-        if self.stall_cycles > 0:
-            self.stall_cycles -= 1
-            self.log_state("STALL")
-            return
-
         # Instruction Fetch
         if self.pc // 4 >= len(self.instruction_memory):
             self.halted = True
@@ -299,9 +294,21 @@ class Processor:
         sig = self.cu.decode(instruction)
         imm_val = ImmGenerator.generate(instruction)
 
+        # thats going on in CU
+        if self.stall_cycles > 0:
+            self.stall_cycles -= 1
+            self.log_state("STALL")
+            sig["RegWr"] = False
+            sig["MemWr"] = False
+            sig["PCWr"] = False
+            return
+        
         if sig["Halt"]:
             self.halted = True
             self.log_state("HALT")
+            sig["RegWr"] = False
+            sig["MemWr"] = False
+            sig["PCWr"] = False
             return
 
         # Execution
@@ -402,7 +409,8 @@ class Processor:
             self.interrupts_enabled = False
             self.log_state("TRAP FIRED!")
 
-        self.pc = next_pc
+        if (sig["PCWr"]):
+            self.pc = next_pc
 
     def log_state(self, action: str):
         if self.ticks > 50000:
