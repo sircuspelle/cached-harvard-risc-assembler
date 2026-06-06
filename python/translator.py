@@ -255,7 +255,8 @@ class Translator:
         debug_lines = []
         current_section = ".text"
         text_address = 0
-        data_address = 0x10000
+        data_base = 0x10000
+        data_address = data_base
 
         for line in lines:
             # machine code doesnt include labels sections and directives
@@ -267,7 +268,7 @@ class Translator:
                     if current_section == ".text":
                         text_address = addr
                     else:
-                        data_address = addr
+                        data_address = data_base + addr
                 continue
 
             if current_section == ".text":
@@ -278,9 +279,17 @@ class Translator:
 
             elif current_section == ".data":
                 data_bytes = self._assemble_data(line)
-                hex_str = data_bytes.hex().upper()
-                debug_lines.append(f"0x{data_address:08X} - {hex_str} - {line}")
-                data_address += len(data_bytes)
+
+                for i in range(0, len(data_bytes), 4):
+                    chunk = data_bytes[i:i+4]
+                    hex_str = chunk.hex().upper()
+
+                    if i == 0:
+                        debug_lines.append(f"0x{data_address:08X} - {hex_str} - {line}")
+                    else:
+                        debug_lines.append(f"0x{data_address:08X} - {hex_str} -")
+                    
+                    data_address += 4
 
         return "\n".join(debug_lines)
 

@@ -3,7 +3,7 @@ in_source: |-
   .org 0x0
   array_ptr:   .word args
   input_count: .word 0
-  args:        .word 0, 0, 0, 0  ; Место под A_hi, A_lo, B_hi, B_lo
+  args:        .word 0, 0, 0, 0
 
   .text
   .org 0x0
@@ -287,9 +287,12 @@ out_stdout: |
   output buffer: 21
   logged in exec.log
 out_code_hex: |-
-  0x00000000 - 08000100 - .word args
-  0x00000004 - 00000000 - .word 0
-  0x00000008 - 00000000000000000000000000000000 - .word 0, 0, 0, 0
+  0x00010000 - 08000100 - .word args
+  0x00010004 - 00000000 - .word 0
+  0x00010008 - 00000000 - .word 0, 0, 0, 0
+  0x0001000C - 00000000 -
+  0x00010010 - 00000000 -
+  0x00010014 - 00000000 -
   0x00000000 - 0080006F - jal zero, start
   0x00000004 - 06C0006F - jal zero, isr
   0x00000008 - 00100073 - ei
