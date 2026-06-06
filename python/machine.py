@@ -300,6 +300,7 @@ class Processor:
             sig["RegWr"] = False
             sig["MemWr"] = False
             sig["PCWr"] = False
+            sig["PortWr"] = False
             return
 
         if sig["Halt"]:
@@ -308,6 +309,7 @@ class Processor:
             sig["RegWr"] = False
             sig["MemWr"] = False
             sig["PCWr"] = False
+            sig["PortWr"] = False
             return
 
         # Execution
