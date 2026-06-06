@@ -129,7 +129,6 @@ class ControlUnit:
         rs2 = (instruction >> 20) & 0x1F
         funct7 = (instruction >> 25) & 0x7F
 
-        # TODO: PortRd, PortWr согласовать со схемой
         signals = {
             "RegWr": False,
             "MemRd": False,
@@ -183,7 +182,6 @@ class ControlUnit:
             elif funct3 == 0x4:
                 signals["ALUOp"] = "XOR"
 
-        # TODO: учесть word/byte
         # Load
         elif opcode == 0x03:  # Load
             signals["RegWr"] = True
@@ -249,6 +247,7 @@ class ControlUnit:
                     signals["IRET"] = True
                     signals["IntEnWr"] = True
                     signals["IntEnData"] = True
+                    signals["SelPC"] = "EPC"
                 elif funct12 == 0x001:
                     signals["IntEnWr"] = True
                     signals["IntEnData"] = True
@@ -302,7 +301,7 @@ class Processor:
             sig["MemWr"] = False
             sig["PCWr"] = False
             return
-        
+
         if sig["Halt"]:
             self.halted = True
             self.log_state("HALT")
@@ -354,7 +353,7 @@ class Processor:
 
         if sig["SelPC"] in ("BT", "ALU") and sig["RegWr"]:
             write_back_val = self.pc + 4
-        
+
         if sig["RegWr"] and sig["rd"] != 0:
             self.registers[sig["rd"]] = write_back_val & 0xFFFFFFFF
 
@@ -369,7 +368,7 @@ class Processor:
         if sig["BranchOp"] is not None:
             val_a_s = val_a if val_a < 0x80000000 else val_a - 0x100000000
             val_b_s = val_b if val_b < 0x80000000 else val_b - 0x100000000
-            
+
             b_op = sig["BranchOp"]
             if b_op == "BEQ":
                 cond = (val_a == val_b)
@@ -385,7 +384,7 @@ class Processor:
         # branch target summator multpilexor
         mux_in_sum = imm_val if cond else 4
         bt_val = self.pc + mux_in_sum
-        
+
         # SelPC mux
         sel_pc_src = sig["SelPC"]
 
@@ -413,9 +412,9 @@ class Processor:
             self.pc = next_pc
 
     def log_state(self, action: str):
-        if self.ticks > 50000:
-            if self.ticks == 50001:
-                self.journal.append("... log cutted on 50000 tacts ...")
+        if self.ticks > 200:
+            if self.ticks == 200:
+                self.journal.append("... log cutted on 200 tacts ...")
             return
 
         regs = f"t0:{self.registers[5]} a0:{self.registers[10]} a1:{self.registers[11]}"

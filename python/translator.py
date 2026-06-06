@@ -248,11 +248,9 @@ class Translator:
                     # words can be written in line with separator
                     data_address += 4 * len(line.split(","))
                 elif line.startswith(".string"):
-                    # TODO: potential error
                     str_content = line[line.find('"') + 1 : line.rfind('"')]
-                    # \\n instead of real cariage return \n
-                    str_content = str_content.replace("\\n", "\n")
-                    data_address += len(str_content) + 1
+                    str_content = str_content.replace("\\n", "\n").replace("\\t", "\t")
+                    data_address += (len(str_content) + 1) * 4
 
     def _second_pass(self, lines: list[str]) -> str:
         debug_lines = []
@@ -270,7 +268,6 @@ class Translator:
                     if current_section == ".text":
                         text_address = addr
                     else:
-                        # TODO: data adress processing needs to be implemeted
                         data_address = addr
                 continue
 
@@ -390,7 +387,7 @@ class Translator:
             return encode_i_type(opcode, funct3, rd, rs1, imm)
 
         # I type (load from memory)
-        if mnemonic in ("lw", "lb"):
+        if mnemonic == "lw":
             rd = self._get_reg(args[0])
             # imm(rs1) like 16(sp)
             match = re.match(r"(-?\w+)\((\w+)\)", args[1])
@@ -405,7 +402,7 @@ class Translator:
             return encode_i_type(opcode, funct3, rd, rs1, imm)
 
         # S type (save in memory)
-        if mnemonic in ("sw", "sb"):
+        if mnemonic in ("sw"):
             rs2 = self._get_reg(args[0])  # value to save
             # imm(rs1) like 16(sp)
             match = re.match(r"(-?\w+)\((\w+)\)", args[1])
@@ -544,13 +541,9 @@ class Translator:
             match = re.search(r'"(.*)"', line)
             if match:
                 str_content = match.group(1).replace("\\n", "\n").replace("\\t", "\t")
-                byte_array = str_content.encode("utf-8") + b"\x00"
-
-                data_bytes.extend(byte_array)
-                # alignment
-
-                padding = (4 - (len(data_bytes) % 4)) % 4
-                data_bytes.extend(b"\x00" * padding)
+                for char in str_content:
+                    data_bytes.extend(struct.pack("<I", ord(char)))
+                data_bytes.extend(struct.pack("<I", 0))
 
         self.data_section.extend(data_bytes)
         return bytes(data_bytes)
