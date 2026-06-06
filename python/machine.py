@@ -90,13 +90,13 @@ class ImmGenerator:
             imm = (instruction >> 20) & 0xFFF
             return imm if (imm & 0x800) == 0 else imm - 0x1000
 
-        elif opcode == 0x23 or (opcode == 0x73 and funct3 == 0x3):
+        if opcode == 0x23 or (opcode == 0x73 and funct3 == 0x3):
             imm_11_5 = (instruction >> 25) & 0x7F
             imm_4_0 = (instruction >> 7) & 0x1F
             imm = (imm_11_5 << 5) | imm_4_0
             return imm if (imm & 0x800) == 0 else imm - 0x1000
 
-        elif opcode == 0x63:
+        if opcode == 0x63:
             imm_12 = (instruction >> 31) & 0x1
             imm_11 = (instruction >> 7) & 0x1
             imm_10_5 = (instruction >> 25) & 0x3F
@@ -104,11 +104,11 @@ class ImmGenerator:
             imm = (imm_12 << 12) | (imm_11 << 11) | (imm_10_5 << 5) | (imm_4_1 << 1)
             return imm if (imm & 0x1000) == 0 else imm - 0x2000
 
-        elif opcode == 0x37:
+        if opcode == 0x37:
             imm = (instruction >> 12) & 0xFFFFF
             return imm << 12
 
-        elif opcode == 0x6F:
+        if opcode == 0x6F:
             imm_20 = (instruction >> 31) & 0x1
             imm_19_12 = (instruction >> 12) & 0xFF
             imm_11 = (instruction >> 20) & 0x1
@@ -371,15 +371,15 @@ class Processor:
 
             b_op = sig["BranchOp"]
             if b_op == "BEQ":
-                cond = (val_a == val_b)
+                cond = val_a == val_b
             elif b_op == "BNE":
-                cond = (val_a != val_b)
+                cond = val_a != val_b
             elif b_op == "BLT":
-                cond = (val_a_s < val_b_s)
+                cond = val_a_s < val_b_s
             elif b_op == "BGE":
-                cond = (val_a_s >= val_b_s)
+                cond = val_a_s >= val_b_s
             elif b_op == "BLTU":
-                cond = (val_a < val_b)
+                cond = val_a < val_b
 
         # branch target summator multpilexor
         mux_in_sum = imm_val if cond else 4
@@ -397,7 +397,6 @@ class Processor:
         else:
             next_pc = self.pc + 4
 
-
         # логируем до изменения PC
         self.log_state(f"0x{instruction:08X}")
 
@@ -408,7 +407,7 @@ class Processor:
             self.interrupts_enabled = False
             self.log_state("TRAP FIRED!")
 
-        if (sig["PCWr"]):
+        if sig["PCWr"]:
             self.pc = next_pc
 
     def log_state(self, action: str):
