@@ -38,58 +38,16 @@ out_log: |-
   Tick:   13 | PC: 0014 | Act: 0x00028663 | t0:84 a0:0 a1:0
   Tick:   14 | PC: 0018 | Act: 0x00503073 | t0:84 a0:0 a1:0
   Tick:   15 | PC: 001C | Act: 0x30200073 | t0:84 a0:0 a1:0
-  Tick:   16 | PC: 000C | Act: 0x0000006F | t0:84 a0:0 a1:0
-  Tick:   17 | PC: 000C | Act: 0x0000006F | t0:84 a0:0 a1:0
-  Tick:   18 | PC: 000C | Act: 0x0000006F | t0:84 a0:0 a1:0
-  Tick:   19 | PC: 000C | Act: 0x0000006F | t0:84 a0:0 a1:0
-  Tick:   20 | PC: 000C | Act: 0x0000006F | t0:84 a0:0 a1:0
-  Tick:   20 | PC: 000C | Act: TRAP FIRED! | t0:84 a0:0 a1:0
-  Tick:   21 | PC: 0004 | Act: 0x00C0006F | t0:84 a0:0 a1:0
-  Tick:   22 | PC: 0010 | Act: 0x001022F3 | t0:101 a0:0 a1:0
-  Tick:   23 | PC: 0014 | Act: 0x00028663 | t0:101 a0:0 a1:0
-  Tick:   24 | PC: 0018 | Act: 0x00503073 | t0:101 a0:0 a1:0
-  Tick:   25 | PC: 001C | Act: 0x30200073 | t0:101 a0:0 a1:0
-  Tick:   26 | PC: 000C | Act: 0x0000006F | t0:101 a0:0 a1:0
-  Tick:   27 | PC: 000C | Act: 0x0000006F | t0:101 a0:0 a1:0
-  Tick:   28 | PC: 000C | Act: 0x0000006F | t0:101 a0:0 a1:0
-  Tick:   29 | PC: 000C | Act: 0x0000006F | t0:101 a0:0 a1:0
-  Tick:   30 | PC: 000C | Act: 0x0000006F | t0:101 a0:0 a1:0
-  Tick:   30 | PC: 000C | Act: TRAP FIRED! | t0:101 a0:0 a1:0
-  Tick:   31 | PC: 0004 | Act: 0x00C0006F | t0:101 a0:0 a1:0
-  Tick:   32 | PC: 0010 | Act: 0x001022F3 | t0:115 a0:0 a1:0
-  Tick:   33 | PC: 0014 | Act: 0x00028663 | t0:115 a0:0 a1:0
-  Tick:   34 | PC: 0018 | Act: 0x00503073 | t0:115 a0:0 a1:0
-  Tick:   35 | PC: 001C | Act: 0x30200073 | t0:115 a0:0 a1:0
-  Tick:   36 | PC: 000C | Act: 0x0000006F | t0:115 a0:0 a1:0
-  Tick:   37 | PC: 000C | Act: 0x0000006F | t0:115 a0:0 a1:0
-  Tick:   38 | PC: 000C | Act: 0x0000006F | t0:115 a0:0 a1:0
-  Tick:   39 | PC: 000C | Act: 0x0000006F | t0:115 a0:0 a1:0
-  Tick:   40 | PC: 000C | Act: 0x0000006F | t0:115 a0:0 a1:0
-  Tick:   40 | PC: 000C | Act: TRAP FIRED! | t0:115 a0:0 a1:0
-  Tick:   41 | PC: 0004 | Act: 0x00C0006F | t0:115 a0:0 a1:0
-  Tick:   42 | PC: 0010 | Act: 0x001022F3 | t0:116 a0:0 a1:0
-  Tick:   43 | PC: 0014 | Act: 0x00028663 | t0:116 a0:0 a1:0
-  Tick:   44 | PC: 0018 | Act: 0x00503073 | t0:116 a0:0 a1:0
-  Tick:   45 | PC: 001C | Act: 0x30200073 | t0:116 a0:0 a1:0
-  Tick:   46 | PC: 000C | Act: 0x0000006F | t0:116 a0:0 a1:0
-  Tick:   47 | PC: 000C | Act: 0x0000006F | t0:116 a0:0 a1:0
-  Tick:   48 | PC: 000C | Act: 0x0000006F | t0:116 a0:0 a1:0
-  Tick:   49 | PC: 000C | Act: 0x0000006F | t0:116 a0:0 a1:0
-  Tick:   50 | PC: 000C | Act: 0x0000006F | t0:116 a0:0 a1:0
-  Tick:   50 | PC: 000C | Act: TRAP FIRED! | t0:116 a0:0 a1:0
-  Tick:   51 | PC: 0004 | Act: 0x00C0006F | t0:116 a0:0 a1:0
-  Tick:   52 | PC: 0010 | Act: 0x001022F3 | t0:0 a0:0 a1:0
-  Tick:   53 | PC: 0014 | Act: 0x00028663 | t0:0 a0:0 a1:0
-  Tick:   54 | PC: 0020 | Act: HALT       | t0:0 a0:0 a1:0
+  Tick:   16 | PC: 0020 | Act: HALT       | t0:84 a0:0 a1:0
 out_stdout: |
   compilation successful! bin: target.bin, log: build.log
   ============================================================
-  Test
+  T
   stop
-  Total ticks: 54
+  Total ticks: 16
   L1 cache hits: 0
   L1 cache misses: 0
-  output buffer: Test
+  output buffer: T
   logged in exec.log
 out_code_hex: |-
   0x00000000 - 0080006F - jal zero, start

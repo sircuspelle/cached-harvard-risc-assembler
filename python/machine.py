@@ -130,9 +130,7 @@ class ControlUnit:
         funct7 = (instruction >> 25) & 0x7F
 
         # TODO: PortRd, PortWr согласовать со схемой
-        # TODO: Branch и Jump согласовать со схемой
         # TODO: Halt сигнал согласовать со схемой и ещё подумать над ним
-        # TODO: IRET может и не нужен, надо согласовать со схемой
         signals = {
             "RegWr": False,
             "MemRd": False,
@@ -140,11 +138,9 @@ class ControlUnit:
             "PortRd": False,
             "PortWr": False,
             "ALUSrc": "REG",
-            "Branch": False,
-            "Jump": False,
-            "JumpReg": False,
+            "SelPC": "PC+4",
+            "BranchOp": "BEQ",
             "Halt": False,
-            "IRET": False,
             "IntEnWr": False,
             "IntEnData": False,
             "ALUOp": "ADD",
@@ -201,13 +197,19 @@ class ControlUnit:
             signals["ALUSrc"] = "IMM"
             signals["ALUOp"] = "ADD"
 
-        # TODO: обдумать описанную на схеме петлю с обработкой проверки условия от аккумултора
         # Branch
         elif opcode == 0x63:
-            signals["Branch"] = True
-            signals["ALUOp"] = "SUB"
-            # TODO: костыльное появление Funct3 в сигналах
-            signals["Funct3"] = funct3
+            signals["SelPC"] = "BT"
+            if funct3 == 0x0:
+                signals["BranchOp"] = "BEQ"
+            elif funct3 == 0x1:
+                signals["BranchOp"] = "BNE"
+            elif funct3 == 0x4:
+                signals["BranchOp"] = "BLT"
+            elif funct3 == 0x5:
+                signals["BranchOp"] = "BGE"
+            elif funct3 == 0x6:
+                signals["BranchOp"] = "BLTU"
 
         # LUI
         elif opcode == 0x37:
@@ -218,12 +220,13 @@ class ControlUnit:
         # JAL
         elif opcode == 0x6F:
             signals["RegWr"] = True
-            signals["Jump"] = True
+            signals["SelPC"] = "BT"
+            signals["BranchOp"] = "JUMP"
 
         # JALR
         elif opcode == 0x67:
             signals["RegWr"] = True
-            signals["JumpReg"] = True
+            signals["SelPC"] = "ALU"
             signals["ALUSrc"] = "IMM"
             signals["ALUOp"] = "ADD"
 
@@ -342,9 +345,9 @@ class Processor:
         elif sig["PortWr"]:
             self.io.write_port(imm_val, self.registers[sig["rs2"]])
 
-        if sig["Jump"] or sig["JumpReg"]:
+        if sig["SelPC"] in ("BT", "ALU") and sig["RegWr"]:
             write_back_val = self.pc + 4
-
+        
         if sig["RegWr"] and sig["rd"] != 0:
             self.registers[sig["rd"]] = write_back_val & 0xFFFFFFFF
 
@@ -352,43 +355,41 @@ class Processor:
         if sig["IntEnWr"]:
             self.interrupts_enabled = sig["IntEnData"]
 
-        # SelPCSrc mux
-        mux_in_pc4  = self.pc + 4
-        mux_in_bt   = self.pc + imm_val  # ветка от сумматора смещения
-        mux_in_alu  = alu_result
-        mux_in_epc  = self.epc
-        mux_in_trap = 0x0004
-
-        branch_taken = False
-        if sig["Branch"]:
+        # Branch Unit
+        cond = False
+        if sig["BranchOp"] == "JUMP":
+            cond = True
+        if sig["BranchOp"] is not None:
             val_a_s = val_a if val_a < 0x80000000 else val_a - 0x100000000
             val_b_s = val_b if val_b < 0x80000000 else val_b - 0x100000000
             
-            f3 = sig["Funct3"]
-            if f3 == 0 and alu_result == 0: branch_taken = True
-            elif f3 == 1 and alu_result != 0: branch_taken = True
-            elif f3 == 4 and val_a_s < val_b_s: branch_taken = True
-            elif f3 == 5 and val_a_s >= val_b_s: branch_taken = True
-            elif f3 == 6 and val_a < val_b: branch_taken = True
+            b_op = sig["BranchOp"]
+            if b_op == "BEQ":
+                cond = (val_a == val_b)
+            elif b_op == "BNE":
+                cond = (val_a != val_b)
+            elif b_op == "BLT":
+                cond = (val_a_s < val_b_s)
+            elif b_op == "BGE":
+                cond = (val_a_s >= val_b_s)
+            elif b_op == "BLTU":
+                cond = (val_a < val_b)
 
-        sel_pc_src = "PC+4" # default next PC
+        # branch target summator multpilexor
+        mux_in_sum = imm_val if cond else 4
+        bt_val = self.pc + mux_in_sum
         
-        if sig["IRET"]:
-            sel_pc_src = "EPC"
-        elif sig["JumpReg"]:
-            sel_pc_src = "ALU"
-        elif sig["Jump"] or (sig["Branch"] and branch_taken):
-            sel_pc_src = "BT"
+        # SelPC mux
+        sel_pc_src = sig["SelPC"]
 
-        # Физический пропуск выбранного сигнала через MUX на выход
         if sel_pc_src == "EPC":
-            next_pc = mux_in_epc
+            next_pc = self.epc
         elif sel_pc_src == "ALU":
-            next_pc = mux_in_alu
+            next_pc = alu_result
         elif sel_pc_src == "BT":
-            next_pc = mux_in_bt
+            next_pc = bt_val
         else:
-            next_pc = mux_in_pc4
+            next_pc = self.pc + 4
 
 
         # логируем до изменения PC
@@ -397,7 +398,7 @@ class Processor:
         # trap Controller
         if self.interrupts_enabled and self.io.interrupt_pending:
             self.epc = next_pc
-            next_pc = mux_in_trap
+            next_pc = 0x004
             self.interrupts_enabled = False
             self.log_state("TRAP FIRED!")
 
