@@ -1,0 +1,248 @@
+in_source: |-
+  .data
+  .org 0x0
+  hello_msg: .string "Hello World!\n"
+
+  .text
+  .org 0x0
+      lui s0, %hi(hello_msg)
+      addi s0, s0, %lo(hello_msg)
+
+  print_loop:
+      lw a0, 0(s0)
+      beq a0, zero, end_print
+      out a0, 0
+      addi s0, s0, 4
+      jal zero, print_loop
+
+  end_print:
+      halt
+
+in_stdin: |-
+  []
+out_log: |-
+  Tick:    1 | PC: 0000 | Act: 0x00010437 | t0:0 a0:0 a1:0
+  Tick:    2 | PC: 0004 | Act: 0x00040413 | t0:0 a0:0 a1:0
+  Tick:    3 | PC: 0008 | Act: 0x00042503 | t0:0 a0:72 a1:0
+  Tick:    4 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:    5 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:    6 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:    7 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:    8 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:    9 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:   10 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:   11 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:   12 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:   13 | PC: 000C | Act: STALL      | t0:0 a0:72 a1:0
+  Tick:   14 | PC: 000C | Act: 0x00050863 | t0:0 a0:72 a1:0
+  Tick:   15 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:72 a1:0
+  Tick:   16 | PC: 0014 | Act: 0x00440413 | t0:0 a0:72 a1:0
+  Tick:   17 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:72 a1:0
+  Tick:   18 | PC: 0008 | Act: 0x00042503 | t0:0 a0:101 a1:0
+  Tick:   19 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   20 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   21 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   22 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   23 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   24 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   25 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   26 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   27 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   28 | PC: 000C | Act: STALL      | t0:0 a0:101 a1:0
+  Tick:   29 | PC: 000C | Act: 0x00050863 | t0:0 a0:101 a1:0
+  Tick:   30 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:101 a1:0
+  Tick:   31 | PC: 0014 | Act: 0x00440413 | t0:0 a0:101 a1:0
+  Tick:   32 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:101 a1:0
+  Tick:   33 | PC: 0008 | Act: 0x00042503 | t0:0 a0:108 a1:0
+  Tick:   34 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   35 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   36 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   37 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   38 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   39 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   40 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   41 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   42 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   43 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   44 | PC: 000C | Act: 0x00050863 | t0:0 a0:108 a1:0
+  Tick:   45 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:108 a1:0
+  Tick:   46 | PC: 0014 | Act: 0x00440413 | t0:0 a0:108 a1:0
+  Tick:   47 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:108 a1:0
+  Tick:   48 | PC: 0008 | Act: 0x00042503 | t0:0 a0:108 a1:0
+  Tick:   49 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   50 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   51 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   52 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   53 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   54 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   55 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   56 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   57 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   58 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:   59 | PC: 000C | Act: 0x00050863 | t0:0 a0:108 a1:0
+  Tick:   60 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:108 a1:0
+  Tick:   61 | PC: 0014 | Act: 0x00440413 | t0:0 a0:108 a1:0
+  Tick:   62 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:108 a1:0
+  Tick:   63 | PC: 0008 | Act: 0x00042503 | t0:0 a0:111 a1:0
+  Tick:   64 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   65 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   66 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   67 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   68 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   69 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   70 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   71 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   72 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   73 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:   74 | PC: 000C | Act: 0x00050863 | t0:0 a0:111 a1:0
+  Tick:   75 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:111 a1:0
+  Tick:   76 | PC: 0014 | Act: 0x00440413 | t0:0 a0:111 a1:0
+  Tick:   77 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:111 a1:0
+  Tick:   78 | PC: 0008 | Act: 0x00042503 | t0:0 a0:32 a1:0
+  Tick:   79 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   80 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   81 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   82 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   83 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   84 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   85 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   86 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   87 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   88 | PC: 000C | Act: STALL      | t0:0 a0:32 a1:0
+  Tick:   89 | PC: 000C | Act: 0x00050863 | t0:0 a0:32 a1:0
+  Tick:   90 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:32 a1:0
+  Tick:   91 | PC: 0014 | Act: 0x00440413 | t0:0 a0:32 a1:0
+  Tick:   92 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:32 a1:0
+  Tick:   93 | PC: 0008 | Act: 0x00042503 | t0:0 a0:87 a1:0
+  Tick:   94 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:   95 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:   96 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:   97 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:   98 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:   99 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:  100 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:  101 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:  102 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:  103 | PC: 000C | Act: STALL      | t0:0 a0:87 a1:0
+  Tick:  104 | PC: 000C | Act: 0x00050863 | t0:0 a0:87 a1:0
+  Tick:  105 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:87 a1:0
+  Tick:  106 | PC: 0014 | Act: 0x00440413 | t0:0 a0:87 a1:0
+  Tick:  107 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:87 a1:0
+  Tick:  108 | PC: 0008 | Act: 0x00042503 | t0:0 a0:111 a1:0
+  Tick:  109 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  110 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  111 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  112 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  113 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  114 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  115 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  116 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  117 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  118 | PC: 000C | Act: STALL      | t0:0 a0:111 a1:0
+  Tick:  119 | PC: 000C | Act: 0x00050863 | t0:0 a0:111 a1:0
+  Tick:  120 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:111 a1:0
+  Tick:  121 | PC: 0014 | Act: 0x00440413 | t0:0 a0:111 a1:0
+  Tick:  122 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:111 a1:0
+  Tick:  123 | PC: 0008 | Act: 0x00042503 | t0:0 a0:114 a1:0
+  Tick:  124 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  125 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  126 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  127 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  128 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  129 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  130 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  131 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  132 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  133 | PC: 000C | Act: STALL      | t0:0 a0:114 a1:0
+  Tick:  134 | PC: 000C | Act: 0x00050863 | t0:0 a0:114 a1:0
+  Tick:  135 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:114 a1:0
+  Tick:  136 | PC: 0014 | Act: 0x00440413 | t0:0 a0:114 a1:0
+  Tick:  137 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:114 a1:0
+  Tick:  138 | PC: 0008 | Act: 0x00042503 | t0:0 a0:108 a1:0
+  Tick:  139 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  140 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  141 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  142 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  143 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  144 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  145 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  146 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  147 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  148 | PC: 000C | Act: STALL      | t0:0 a0:108 a1:0
+  Tick:  149 | PC: 000C | Act: 0x00050863 | t0:0 a0:108 a1:0
+  Tick:  150 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:108 a1:0
+  Tick:  151 | PC: 0014 | Act: 0x00440413 | t0:0 a0:108 a1:0
+  Tick:  152 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:108 a1:0
+  Tick:  153 | PC: 0008 | Act: 0x00042503 | t0:0 a0:100 a1:0
+  Tick:  154 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  155 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  156 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  157 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  158 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  159 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  160 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  161 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  162 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  163 | PC: 000C | Act: STALL      | t0:0 a0:100 a1:0
+  Tick:  164 | PC: 000C | Act: 0x00050863 | t0:0 a0:100 a1:0
+  Tick:  165 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:100 a1:0
+  Tick:  166 | PC: 0014 | Act: 0x00440413 | t0:0 a0:100 a1:0
+  Tick:  167 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:100 a1:0
+  Tick:  168 | PC: 0008 | Act: 0x00042503 | t0:0 a0:33 a1:0
+  Tick:  169 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  170 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  171 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  172 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  173 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  174 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  175 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  176 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  177 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  178 | PC: 000C | Act: STALL      | t0:0 a0:33 a1:0
+  Tick:  179 | PC: 000C | Act: 0x00050863 | t0:0 a0:33 a1:0
+  Tick:  180 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:33 a1:0
+  Tick:  181 | PC: 0014 | Act: 0x00440413 | t0:0 a0:33 a1:0
+  Tick:  182 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:33 a1:0
+  Tick:  183 | PC: 0008 | Act: 0x00042503 | t0:0 a0:10 a1:0
+  Tick:  184 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  185 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  186 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  187 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  188 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  189 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  190 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  191 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  192 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  193 | PC: 000C | Act: STALL      | t0:0 a0:10 a1:0
+  Tick:  194 | PC: 000C | Act: 0x00050863 | t0:0 a0:10 a1:0
+  Tick:  195 | PC: 0010 | Act: 0x00A03073 | t0:0 a0:10 a1:0
+  Tick:  196 | PC: 0014 | Act: 0x00440413 | t0:0 a0:10 a1:0
+  Tick:  197 | PC: 0018 | Act: 0xFF1FF06F | t0:0 a0:10 a1:0
+  Tick:  198 | PC: 0008 | Act: 0x00042503 | t0:0 a0:0 a1:0
+  Tick:  199 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  200 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+out_stdout: |
+  compilation successful! bin: target.bin, log: build.log
+  ============================================================
+  Hello World!
+
+  stop
+  Total ticks: 210
+  L1 cache hits: 0
+  L1 cache misses: 14
+  output buffer: Hello World!
+
+  logged in exec.log
+out_code_hex: |-
+  0x00000000 - 48000000650000006C0000006C0000006F00000020000000570000006F000000720000006C00000064000000210000000A00000000000000 - .string "Hello World!\n"
+  0x00000000 - 00010437 - lui s0, %hi(hello_msg)
+  0x00000004 - 00040413 - addi s0, s0, %lo(hello_msg)
+  0x00000008 - 00042503 - lw a0, 0(s0)
+  0x0000000C - 00050863 - beq a0, zero, end_print
+  0x00000010 - 00A03073 - out a0, 0
+  0x00000014 - 00440413 - addi s0, s0, 4
+  0x00000018 - FF1FF06F - jal zero, print_loop
+  0x0000001C - 00000073 - halt
+out_code: !!binary |
+  rd6t3iAAAAA4AAAANwQBABMEBAADJQQAYwgFAHMwoAATBEQAb/Af/3MAAABIAAAAZQAAAGwAAABs
+  AAAAbwAAACAAAABXAAAAbwAAAHIAAABsAAAAZAAAACEAAAAKAAAAAAAAAA==

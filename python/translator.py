@@ -42,7 +42,6 @@ REGISTERS = {
 }
 
 
-# safely collect 32-bit machine words from args
 def encode_r_type(opcode: int, funct3: int, funct7: int, rd: int, rs1: int, rs2: int) -> int:
     return (
         ((funct7 & 0x7F) << 25)
@@ -342,7 +341,7 @@ class Translator:
             rs1 = self._get_reg(args[1])
             rs2 = self._get_reg(args[2])
 
-            opcode = 0x33  # stolen from RISC-V
+            opcode = 0x33
             funct7 = 0x00
 
             if mnemonic == "add":
