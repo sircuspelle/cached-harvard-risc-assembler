@@ -142,6 +142,7 @@ class ControlUnit:
             "ALUSrc": "REG",
             "Branch": False,
             "Jump": False,
+            "JumpReg": False,
             "Halt": False,
             "IRET": False,
             "IntEnWr": False,
@@ -222,10 +223,9 @@ class ControlUnit:
         # JALR
         elif opcode == 0x67:
             signals["RegWr"] = True
-            signals["Jump"] = True
+            signals["JumpReg"] = True
             signals["ALUSrc"] = "IMM"
-            # TODO: костыть ADD_REG_IMM, перенести на ADD
-            signals["ALUOp"] = "ADD_REG_IMM"
+            signals["ALUOp"] = "ADD"
 
         # порты, прерывания, halt
         elif opcode == 0x73:
@@ -308,8 +308,6 @@ class Processor:
 
         if sig["ALUOp"] == "ADD":
             alu_result = val_a + val_b
-        elif sig["ALUOp"] == "ADD_REG_IMM":
-            alu_result = val_a + val_b
         elif sig["ALUOp"] == "SUB":
             alu_result = val_a - val_b
         elif sig["ALUOp"] == "AND":
@@ -344,41 +342,54 @@ class Processor:
         elif sig["PortWr"]:
             self.io.write_port(imm_val, self.registers[sig["rs2"]])
 
-        # control flow: conditional
-        if sig["Branch"]:
-
-            def to_signed(x):
-                return x if x < 0x80000000 else x - 0x100000000
-
-            val_a_s = to_signed(val_a)
-            val_b_s = to_signed(val_b)
-
-            if sig["Funct3"] == 0 and alu_result == 0:  # beq
-                next_pc = self.pc + imm_val
-            elif sig["Funct3"] == 1 and alu_result != 0:  # bne
-                next_pc = self.pc + imm_val
-            elif sig["Funct3"] == 4 and val_a_s < val_b_s:  # blt знаковое
-                next_pc = self.pc + imm_val
-            elif sig["Funct3"] == 5 and val_a_s >= val_b_s:  # bge знаковое
-                next_pc = self.pc + imm_val
-            elif sig["Funct3"] == 6 and val_a < val_b:  # bltu беззнаковое <
-                next_pc = self.pc + imm_val
-
-        if sig["Jump"]:
+        if sig["Jump"] or sig["JumpReg"]:
             write_back_val = self.pc + 4
-            if sig["ALUOp"] == "ADD_REG_IMM":  # JALR
-                next_pc = alu_result
-            else:  # JAL
-                next_pc = self.pc + imm_val
-
-        if sig["IntEnWr"]:
-            self.interrupts_enabled = sig["IntEnData"]
-
-        if sig["IRET"]:
-            next_pc = self.epc
 
         if sig["RegWr"] and sig["rd"] != 0:
             self.registers[sig["rd"]] = write_back_val & 0xFFFFFFFF
+
+        # D-триггер прерываний
+        if sig["IntEnWr"]:
+            self.interrupts_enabled = sig["IntEnData"]
+
+        # SelPCSrc mux
+        mux_in_pc4  = self.pc + 4
+        mux_in_bt   = self.pc + imm_val  # ветка от сумматора смещения
+        mux_in_alu  = alu_result
+        mux_in_epc  = self.epc
+        mux_in_trap = 0x0004
+
+        branch_taken = False
+        if sig["Branch"]:
+            val_a_s = val_a if val_a < 0x80000000 else val_a - 0x100000000
+            val_b_s = val_b if val_b < 0x80000000 else val_b - 0x100000000
+            
+            f3 = sig["Funct3"]
+            if f3 == 0 and alu_result == 0: branch_taken = True
+            elif f3 == 1 and alu_result != 0: branch_taken = True
+            elif f3 == 4 and val_a_s < val_b_s: branch_taken = True
+            elif f3 == 5 and val_a_s >= val_b_s: branch_taken = True
+            elif f3 == 6 and val_a < val_b: branch_taken = True
+
+        sel_pc_src = "PC+4" # default next PC
+        
+        if sig["IRET"]:
+            sel_pc_src = "EPC"
+        elif sig["JumpReg"]:
+            sel_pc_src = "ALU"
+        elif sig["Jump"] or (sig["Branch"] and branch_taken):
+            sel_pc_src = "BT"
+
+        # Физический пропуск выбранного сигнала через MUX на выход
+        if sel_pc_src == "EPC":
+            next_pc = mux_in_epc
+        elif sel_pc_src == "ALU":
+            next_pc = mux_in_alu
+        elif sel_pc_src == "BT":
+            next_pc = mux_in_bt
+        else:
+            next_pc = mux_in_pc4
+
 
         # логируем до изменения PC
         self.log_state(f"0x{instruction:08X}")
@@ -386,7 +397,7 @@ class Processor:
         # trap Controller
         if self.interrupts_enabled and self.io.interrupt_pending:
             self.epc = next_pc
-            next_pc = 0x0004
+            next_pc = mux_in_trap
             self.interrupts_enabled = False
             self.log_state("TRAP FIRED!")
 
