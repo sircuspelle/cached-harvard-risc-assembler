@@ -413,9 +413,10 @@ class Processor:
             self.pc = next_pc
 
     def log_state(self, action: str):
-        if self.ticks > 200:
-            if self.ticks == 200:
-                self.journal.append("... log cutted on 200 tacts ...")
+        log_limit = 2000
+        if self.ticks >= log_limit:
+            if self.ticks == log_limit:
+                self.journal.append("... log cutted on {log_limit} tacts ...")
             return
 
         regs = f"t0:{self.registers[5]} a0:{self.registers[10]} a1:{self.registers[11]}"
@@ -458,7 +459,7 @@ def load_schedule(file_path: str) -> list[tuple[int, int]]:
 def main():
     parser = argparse.ArgumentParser(description="RISC-IV Processor Simulator")
     parser.add_argument("binary", help="compiled binary file (.bin)")
-    parser.add_argument("--input", help="interrupt schedule file (.txt)", default=None)
+    parser.add_argument("--input", help="interrupt schedule file with content: [(tick, sym), (tick, sym), ...]", default=None)
     parser.add_argument("--log", help="output execution log", default="execution.log")
     args = parser.parse_args()
 

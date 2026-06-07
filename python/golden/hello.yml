@@ -221,6 +221,16 @@ out_log: |-
   Tick:  198 | PC: 0008 | Act: 0x00042503 | t0:0 a0:0 a1:0
   Tick:  199 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
   Tick:  200 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  201 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  202 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  203 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  204 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  205 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  206 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  207 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  208 | PC: 000C | Act: STALL      | t0:0 a0:0 a1:0
+  Tick:  209 | PC: 000C | Act: 0x00050863 | t0:0 a0:0 a1:0
+  Tick:  210 | PC: 001C | Act: HALT       | t0:0 a0:0 a1:0
 out_stdout: |
   compilation successful! bin: target.bin, log: build.log
   ============================================================
