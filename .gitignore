@@ -8,8 +8,3 @@ python/.coverage
 python/tests/__pycache__/
 
 .obsidian
-
-python/examples/hello_user_name.s
-python/examples/hello.s
-python/examples/prob1.s
-python/examples/sort.s
