@@ -203,7 +203,10 @@ class Translator:
             parts = line.split(maxsplit=1)
             first_word = parts[0]
             if first_word in macros:
-                final_lines.extend(macros[first_word])
+                for macro_line in macros[first_word]:
+                    for name, value in defines.items():
+                        macro_line = re.sub(rf"\b{name}\b", value, macro_line)
+                    final_lines.append(macro_line)
             else:
                 final_lines.append(line)
 

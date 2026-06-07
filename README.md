@@ -4,77 +4,87 @@
 asm | risc | harv | hw | tick | binary | trap | port | cstr | prob1 | cache
 ```
 
-
 ---
 
 ## Язык программирования
-
-- Я воспользуюсь `risc-iv` языком, написанным для wrench, синтаксис ассемблера также переезжает из wrench
-- в ISA необходимо внести
-    1. port-mapped i/o
-        1. `in <rd>, <port>`
-        2. `out <rs1>, <port>`
-    2. trap ввод/вывод через прерывания
-        1. `iret`
-        2. `ei\di`
-    3. harvard
-        1. Команды работы с памятью будут обращаться к отдельному блоку памяти, данных - к отдельному блоку
-
----
 
 ### Синтаксис
 
 ```backus-naur
 <program> ::= { <line> }
 
+
+
 <line> ::= [ <label> ] [ <statement> ] [ <comment> ] "\n"
+
+
 
 <label> ::= <identifier> ":"
 
-<statement> ::= <instruction> | <directive>
+<comment> ::= ";" { <printable_ASII_except_'\'_and_'"'> }
+
+<statement> ::= <instruction> | <directive> | <preprocessor_directive> | 
+<macro_call>
+
+
+
+<identifier> ::= [a-zA-Z_] { [a-zA-Z0-9_] }
+
+<instruction> ::= <opcode> [ <operand> { "," <operand> } ]
 
 <directive> ::= <section_directive> 
               | <org_directive> 
               | <data_directive>
 
-<section_directive> ::= ".text" | ".data"
-<org_directive>     ::= ".org" <number>
-<data_directive>    ::= ".word" <number_list> 
-              | ".string" <string_literal>
+<preprocessor_directive> ::= "%define" <identifier> <any_text> | "%ifdef" <identifier> | "%ifndef" <identifier> | "%endif" | "%macro" <identifier> | "%endmacro"
 
-<instruction> ::= <opcode> [ <operand> { "," <operand> } ]
+<macro_call> ::= <identifier>
+
+
+
+<opcode> ::= "add" | "sub" | "and" | "or" | "xor" | "mul" | "div" | "rem"
+           | "addi" | "andi" | "ori" | "xori" | "lw" | "sw" | "lui" | "beq" | "bne" | "blt" | "bge" | "bltu" | "ble" 
+           | "jal" | "jalr" | "j" | "beqz" | "in" | "out" | "halt" | "iret" | "ei" | "di"
 
 <operand> ::= <register> 
             | <number> 
             | <identifier> 
             | <memory_access>
             | <macro_directive>
+            
+<section_directive> ::= ".text" | ".data"
 
-<memory_access> ::= <number> "(" <register> ")"
+<org_directive>     ::= ".org" <number>
 
-<macro_directive> ::= "%hi(" <identifier> ")" | "%lo(" <identifier> ")"
+<data_directive>    ::= ".word" <number_list> 
+              | ".string" <string_literal>
+            
 
-<number_list> ::= <number> { "," <number> }
 
 <register> ::= "zero" | "ra" | "sp" | "gp" | "tp" | "t0" | "t1" | "t2" 
              | "s0" | "s1" | "a0" | "a1" | "a2" | "a3" | "a4" | "a5" 
              | "a6" | "a7" | "s2" | "s3" | "s4" | "s5" | "s6" | "s7" 
              | "s8" | "s9" | "s10" | "s11" | "t3" | "t4" | "t5" | "t6"
 
-<opcode> ::= "add" | "sub" | "and" | "or" | "xor" | "mul" | "div" | "rem"
-           | "addi" | "andi" | "ori" | "xori" | "lw" | "sw" | "lui" | "beq" | "bne" | "blt" | "bge" | "bltu" | "ble" 
-           | "jal" | "jalr" | "j" | "beqz" | "in" | "out" | "halt" | "iret" | "ei" | "di"
+<number_list> ::= <number> { "," <number> }
 
-<identifier> ::= [a-zA-Z_] { [a-zA-Z0-9_] }
 <number> ::= [ "-" ] ( <dec_number> | <hex_number> )
+
+<memory_access> ::= <number> "(" <register> ")"
+
+<macro_directive> ::= "%hi(" <identifier> ")" | "%lo(" <identifier> ")"
+
+
+
 <dec_number> ::= [1-9] { [0-9] } | "0"
+
 <hex_number> ::= "0x" [0-9a-fA-F] { [0-9a-fA-F] }
 
 <string_literal> ::= '"' { <string_char> | <escape_seq> } '"'
-<string_char> ::= < printable ASII except '\' and '"' >
-<escape_seq> ::= '\n' | '\t'
 
-<comment> ::= ";" { <printable_character> }
+<string_char> ::= <printable_ASII_except_'\'_and_'"'>
+
+<escape_seq> ::= '\n' | '\t'
 ```
 
 ### Семантика
