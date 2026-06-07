@@ -1,5 +1,4 @@
 combined.txt
-*.log
 
 python/__pycache__/
 python/.pytest_cache/
@@ -7,3 +6,11 @@ python/.ruff_cache/
 python/tmp_tests
 python/.coverage
 python/tests/__pycache__/
+
+.obsidian
+
+python/examples/double.s
+python/examples/hello_user_name.s
+python/examples/hello.s
+python/examples/prob1.s
+python/examples/sort.s
