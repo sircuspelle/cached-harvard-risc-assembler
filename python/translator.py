@@ -5,7 +5,6 @@ import os
 import re
 import struct
 
-# codes for source registers and destination regitsres
 REGISTERS = {
     "zero": 0,
     "ra": 1,
@@ -104,7 +103,7 @@ def encode_j_type(opcode: int, rd: int, imm: int) -> int:
 class Translator:
     def __init__(self) -> None:
         self.text_section: list[int] = []  # commands saved in words
-        self.data_section: bytearray = bytearray()  # data saved by bytes
+        self.data_section: bytearray = bytearray()  # data saved in words
 
         self.labels: dict[str, int] = {}  # label name linked with address
         self.label_sections: dict[str, str] = {}  # lable name linked with section ("text" | "data")
@@ -119,7 +118,7 @@ class Translator:
         # machine code generation + human-read dump forming
         debug_log = self._second_pass(lines)
 
-        # make hader and code machine comands from numbers to bytes
+        # make header and code machine comands from numbers to bytes
         binary_data = self._build_binary()
 
         return binary_data, debug_log
