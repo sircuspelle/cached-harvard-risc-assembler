@@ -459,7 +459,9 @@ def load_schedule(file_path: str) -> list[tuple[int, int]]:
 def main():
     parser = argparse.ArgumentParser(description="RISC-IV Processor Simulator")
     parser.add_argument("binary", help="compiled binary file (.bin)")
-    parser.add_argument("--input", help="interrupt schedule file with content: [(tick, sym), (tick, sym), ...]", default=None)
+    parser.add_argument(
+        "--input", help="interrupt schedule file with content: [(tick, sym), (tick, sym), ...]", default=None
+    )
     parser.add_argument("--log", help="output execution log", default="execution.log")
     args = parser.parse_args()
 

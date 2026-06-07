@@ -281,14 +281,14 @@ class Translator:
                 data_bytes = self._assemble_data(line)
 
                 for i in range(0, len(data_bytes), 4):
-                    chunk = data_bytes[i:i+4]
+                    chunk = data_bytes[i : i + 4]
                     hex_str = chunk.hex().upper()
 
                     if i == 0:
                         debug_lines.append(f"0x{data_address:08X} - {hex_str} - {line}")
                     else:
                         debug_lines.append(f"0x{data_address:08X} - {hex_str} -")
-                    
+
                     data_address += 4
 
         return "\n".join(debug_lines)
