@@ -560,9 +560,9 @@ class Translator:
 # cli
 def main():
     parser = argparse.ArgumentParser(description="modified risc-iv assembler")
-    parser.add_argument("input", help="input assembly file (.asm)")
+    parser.add_argument("input", help="input assembly file")
     parser.add_argument("output", help="output binary file (.bin)")
-    parser.add_argument("--log", help="output debug log file (.log)", default="program.log")
+    parser.add_argument("--log", help="output debug log file (.log)", default="program_dump.log")
 
     args = parser.parse_args()
 
