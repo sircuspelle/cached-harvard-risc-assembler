@@ -125,11 +125,9 @@ class ControlUnit:
 
     def decode(self, instruction: int, stall: bool, int_pending: bool) -> dict:
         opcode = instruction & 0x7F
-        rd = (instruction >> 7) & 0x1F
         funct3 = (instruction >> 12) & 0x7
-        rs1 = (instruction >> 15) & 0x1F
-        rs2 = (instruction >> 20) & 0x1F
         funct7 = (instruction >> 25) & 0x7F
+        funct12 = (instruction >> 20) & 0xFFF
 
         int_en_wr = False
         int_en_data = False
@@ -147,9 +145,6 @@ class ControlUnit:
             "Halt": False,
             "Int": False,
             "ALUOp": "ADD",
-            "rs1": rs1,
-            "rs2": rs2,
-            "rd": rd,
         }
 
         # R-type (add, sub, and, ...)
@@ -244,7 +239,6 @@ class ControlUnit:
                 signals["PortWr"] = True
 
             elif funct3 == 0x0:
-                funct12 = (instruction >> 20) & 0xFFF
                 if funct12 == 0x000:
                     signals["Halt"] = True
                 elif funct12 == 0x302:
@@ -310,6 +304,10 @@ class Processor:
         instruction = self.instruction_memory[self.pc // 4]
 
         # Decode
+        rs1 = (instruction >> 15) & 0x1F
+        rs2 = (instruction >> 20) & 0x1F
+        rd = (instruction >> 7) & 0x1F
+
         is_stalling = self.stall_cycles > 0
 
         sig = self.cu.decode(instruction, is_stalling, self.io.interrupt_pending)
@@ -326,8 +324,8 @@ class Processor:
             return
 
         # Execution
-        val_a = self.registers[sig["rs1"]]
-        val_b = imm_val if sig["ALUSrc"] == "IMM" else self.registers[sig["rs2"]]
+        val_a = self.registers[rs1]
+        val_b = imm_val if sig["ALUSrc"] == "IMM" else self.registers[rs2]
         alu_result = 0
 
         if sig["ALUOp"] == "ADD":
@@ -356,7 +354,7 @@ class Processor:
             self.stall_cycles += stalls
 
         elif sig["MemWr"]:
-            val_to_store = self.registers[sig["rs2"]]
+            val_to_store = self.registers[rs2]
             stalls = self.cache.write(alu_result, val_to_store)
             self.stall_cycles += stalls
 
@@ -364,13 +362,13 @@ class Processor:
             write_back_val = self.io.read_port(imm_val)
 
         elif sig["PortWr"]:
-            self.io.write_port(imm_val, self.registers[sig["rs2"]])
+            self.io.write_port(imm_val, self.registers[rs2])
 
         if sig["SelPC"] in ("BT", "ALU") and sig["RegWr"]:
             write_back_val = self.pc + 4
 
-        if sig["RegWr"] and sig["rd"] != 0:
-            self.registers[sig["rd"]] = write_back_val & 0xFFFFFFFF
+        if sig["RegWr"] and rd != 0:
+            self.registers[rd] = write_back_val & 0xFFFFFFFF
 
         # Branch Unit
         cond = False
