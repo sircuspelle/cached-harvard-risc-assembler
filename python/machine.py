@@ -120,14 +120,19 @@ class ImmGenerator:
 
 
 class ControlUnit:
-    @staticmethod
-    def decode(instruction: int) -> dict:
+    def __init__(self):
+        self.ie = False
+
+    def decode(self, instruction: int, stall: bool, int_pending: bool) -> dict:
         opcode = instruction & 0x7F
         rd = (instruction >> 7) & 0x1F
         funct3 = (instruction >> 12) & 0x7
         rs1 = (instruction >> 15) & 0x1F
         rs2 = (instruction >> 20) & 0x1F
         funct7 = (instruction >> 25) & 0x7F
+
+        int_en_wr = False
+        int_en_data = False
 
         signals = {
             "RegWr": False,
@@ -140,8 +145,7 @@ class ControlUnit:
             "SelPC": "PC+4",
             "BranchOp": "BEQ",
             "Halt": False,
-            "IntEnWr": False,
-            "IntEnData": False,
+            "Int": False,
             "ALUOp": "ADD",
             "rs1": rs1,
             "rs2": rs2,
@@ -245,15 +249,32 @@ class ControlUnit:
                     signals["Halt"] = True
                 elif funct12 == 0x302:
                     signals["IRET"] = True
-                    signals["IntEnWr"] = True
-                    signals["IntEnData"] = True
+                    int_en_wr = True
+                    int_en_data = True
                     signals["SelPC"] = "EPC"
                 elif funct12 == 0x001:
-                    signals["IntEnWr"] = True
-                    signals["IntEnData"] = True
+                    int_en_wr = True
+                    int_en_data = True
                 elif funct12 == 0x002:
-                    signals["IntEnWr"] = True
-                    signals["IntEnData"] = False
+                    int_en_wr = True
+                    int_en_data = False
+
+        # обработка прерываний
+        int_signal = self.ie and int_pending
+        signals["Int"] = int_signal
+
+        need_to_write = int_en_wr or int_signal
+        not_stalled = not (stall or signals["Halt"])
+
+        if need_to_write and not_stalled:
+            self.ie = False if int_signal else int_en_data
+
+        # обработка остановок
+        if stall or signals["Halt"]:
+            signals["RegWr"] = False
+            signals["MemWr"] = False
+            signals["PCWr"] = False
+            signals["PortWr"] = False
 
         return signals
 
@@ -268,7 +289,6 @@ class Processor:
         self.registers = [0] * 32
         self.pc = 0
         self.epc = 0
-        self.interrupts_enabled = False
 
         self.ticks = 0
         self.stall_cycles = 0
@@ -290,26 +310,19 @@ class Processor:
         instruction = self.instruction_memory[self.pc // 4]
 
         # Decode
-        sig = self.cu.decode(instruction)
+        is_stalling = self.stall_cycles > 0
+
+        sig = self.cu.decode(instruction, is_stalling, self.io.interrupt_pending)
         imm_val = ImmGenerator.generate(instruction)
 
-        # thats going on in CU
-        if self.stall_cycles > 0:
+        if is_stalling:
             self.stall_cycles -= 1
             self.log_state("STALL")
-            sig["RegWr"] = False
-            sig["MemWr"] = False
-            sig["PCWr"] = False
-            sig["PortWr"] = False
             return
 
         if sig["Halt"]:
             self.halted = True
             self.log_state("HALT")
-            sig["RegWr"] = False
-            sig["MemWr"] = False
-            sig["PCWr"] = False
-            sig["PortWr"] = False
             return
 
         # Execution
@@ -359,10 +372,6 @@ class Processor:
         if sig["RegWr"] and sig["rd"] != 0:
             self.registers[sig["rd"]] = write_back_val & 0xFFFFFFFF
 
-        # D-триггер прерываний
-        if sig["IntEnWr"]:
-            self.interrupts_enabled = sig["IntEnData"]
-
         # Branch Unit
         cond = False
         if sig["BranchOp"] == "JUMP":
@@ -391,23 +400,24 @@ class Processor:
         sel_pc_src = sig["SelPC"]
 
         if sel_pc_src == "EPC":
-            next_pc = self.epc
+            clear_next_pc = self.epc
         elif sel_pc_src == "ALU":
-            next_pc = alu_result
+            clear_next_pc = alu_result
         elif sel_pc_src == "BT":
-            next_pc = bt_val
+            clear_next_pc = bt_val
         else:
-            next_pc = self.pc + 4
+            clear_next_pc = self.pc + 4
 
         # логируем до изменения PC
         self.log_state(f"0x{instruction:08X}")
 
-        # trap Controller
-        if self.interrupts_enabled and self.io.interrupt_pending:
-            self.epc = next_pc
-            next_pc = 0x004
-            self.interrupts_enabled = False
+        if sig["Int"]:
+            # запись в регистр EPC
+            self.epc = clear_next_pc
             self.log_state("TRAP FIRED!")
+
+        # мультиплексор источника PC
+        next_pc = 0x004 if sig["Int"] else clear_next_pc
 
         if sig["PCWr"]:
             self.pc = next_pc

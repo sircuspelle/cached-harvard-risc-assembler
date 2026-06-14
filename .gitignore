@@ -8,3 +8,5 @@ python/.coverage
 python/tests/__pycache__/
 
 .obsidian
+
+check.ps1
