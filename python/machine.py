@@ -291,7 +291,6 @@ class Processor:
         self.journal: list[str] = []
 
     def tick(self):
-        # защёлкнули PC
         self.ticks += 1
 
         self.io.tick_check(self.ticks)
